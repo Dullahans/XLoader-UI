@@ -1,0 +1,26 @@
+{
+  "default": {
+    "default": {
+      "max_current_a": 10,
+      "max_voltage_v": 30,
+      "max_power_w": 100,
+      "sample_rate_khz": 100
+    }
+  },
+  "Loader110": {
+    "default": {
+      "max_current_a": 21,
+      "max_voltage_v": 18,
+      "max_power_w": 120,
+      "sample_rate_khz": 100
+    },
+    "v4.0": {
+      "max_current_a": 21,
+      "max_voltage_v": 18,
+      "max_power_w": 120,
+      "sample_rate_khz": 100
+    }
+  }
+}
+
+

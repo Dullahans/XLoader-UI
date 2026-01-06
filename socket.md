@@ -1,0 +1,650 @@
+1.开启loader状态上报定时器（每5s一次）
+请求
+{
+    "topic":"LOADER",
+    "cmd_id":
+    "name":"start_get_connect_status",
+    "data":"{}"
+}
+响应
+{
+    "topic":"LOADER",
+    "name":"get_connect_status",
+    "cmd_id":"999",
+    "data":{
+        "lab-1":[{
+            "ip":"127.0.0.1",
+            "port":"2",
+            "value":[{
+                "ip":"127.0.0.1",
+                "loader_num":0,
+                "loader_name":"loader-0",
+                "sn":"1755350617",
+                "version":"v02.09.SP03",
+                "name":"Loader110B",
+                "connect":true,
+                "running_model":"",
+                "running":false,
+                "interrupt":false,
+                "high_temp_alarm":false,
+                "chat_type":"can",
+                "exist_new_version":false,
+                "task_id":"",
+                "target_version":"",
+                "busy":false,
+                "is_upgrade":false,
+                "total_time":130.64,
+            },{
+                "ip":"127.0.0.1",
+                "loader_num":1,
+                "loader_name":"loader-1",
+                "sn":"1755350618",
+                "version":"v02.09.SP03",
+                "name":"Loader110B",
+                "connect":true,
+                "running_model":"",
+                "running":false,
+                "interrupt":false,
+                "high_temp_alarm":false,
+                "chat_type":"can",
+                "exist_new_version":false,
+                "task_id":"",
+                "target_version":"",
+                "busy":false,
+                "is_upgrade":false,
+                "total_time":130.64,
+            },...
+            ]
+        }]
+    }
+}
+
+2.获取loader机柜位置信息
+请求
+{
+    ...
+    "name":"query_location_info",
+    "data":"{}"
+}
+响应
+{
+    ...
+    data:{
+
+        "loader_location":"上海实验室01"，
+        "location_list":[
+            "上海实验室01",
+            "广州实验室01",
+            ...
+        ]
+    }
+}
+
+3.获取模型列表
+请求
+{
+    ...
+    "name":"get_models",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"sim_type\":\"component_emulation\"}"
+}
+响应
+{
+    "data":{
+        "ret":true,
+        "desc":[
+            {
+                "value":"project1",
+                "label":"project1",
+                "children":[
+                    {
+                        "value":"window",
+                        "label":"window"
+                    }
+                ]
+            }
+        ]
+    }
+}
+
+sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
+
+4.启动模型播放
+请求
+{
+    ...
+    "name":"start_loader",
+    "data":"{\"loader_num\":0,\"device_id\":\"127.0.0.1\",\"model\":[\"project1\",\"Window_Left\"]}"
+}
+响应
+{
+    ...
+    "data":{
+        "ret":true,
+        "desc":"SUC:PLAY->begin"
+    }
+}
+
+5.停止模型播放
+请求
+{
+    "name":"stop_loader",
+    "data":"{\"loader_num\":0,\"device_id\":\"127.0.0.1\",\"sim_type\":\"component_emulation\",\"model\":[\"project1\",\"Window\"]}"
+}
+响应
+{
+    "data":{
+        "ret":true,
+        "desc":"SUC:PLAY->end"
+    }
+}
+
+6.批量获取寄存器值
+请求
+{
+    ...
+    "name":"get_signals",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"regs\":[\"CCV\",\"DO1\",...]}"
+}
+响应
+{
+    ...
+    "name":"get_signals",
+    "data":[
+        {"name":"CCV","desc":"主回路电流设定值(mA)"，"value":"100"},
+        {"name":"DO1","desc":"DO输出1","value":"1"}
+        ...
+    ]
+}
+
+7.获取指定寄存器值
+请求
+{
+    ...
+    "name":"get_signals",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"reg_name\":\"CCV\"}"
+}
+响应
+{
+    ...
+    "name":"CCV"，
+    "value":"100"
+}
+
+8.设置指定寄存器值
+请求
+{
+    ...
+    "name":"set_signals",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"signals\":[{\"name\":\"CCV\",\"value\":\"100\"}]}"
+}
+响应
+{
+    ...
+    "name":"set_signals",
+    "data":{
+        "ret":true,
+        "desc":"set_signals success"
+    }
+}
+
+9.获取loader中文件信息
+请求
+{
+    "name":"get_file_info",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0\"name\":\"}"
+}
+响应
+{
+    "label":"project1",
+    children:[
+        {
+            "label":"Window",
+            "children":[
+                {"label":"current1.bin"},
+                {"label":"current2.bin"}
+            ]
+        },
+        ...
+    ]
+}
+
+10.上位机工程跟目录下resource/loader目录结构读取
+请求
+{
+    ...
+    "name":"obtain_loader_dir_structure",
+    "data":"{\"path\":\"loader\"}"
+}
+响应
+{
+    "name":"obtain_loader_dir_structure",
+    "data":{
+        "result":[
+            {"label":"project1"},
+            {"label":"model"},
+            {"label":"example.zip"},
+            {"label":"loader110_config.yml"}
+        ]
+    }
+}
+
+11.导入模型文件
+请求（导入当前设备）
+{
+    ...
+    "name":"load_model",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"modelzip\":\"model\\\\test.bin\",\"project\":\"project1\",\"all_devices\":false}"
+}
+请求（导入所有设备）
+{
+    ...
+    "name":"load_model",
+    "data":"{\"modelzip\":\"model\\\\test.bin\",\"project\":\"project1\",\"all_devices\":true}"
+}
+响应
+{
+    ...
+    "name":"load_model",
+    "data":{
+        "ret":true,
+        "desc":""
+    }
+}
+
+12.从云端导入模型
+请求
+{
+    ...
+    "name":"download_cloud_models",
+    "data":"{\"devoce_id\":\"127.0.0.1\",\"loader_num\":0,\"model_name\":\"j126save_power_1.zip\",\"model_id\":544,\"project\":\"project1\"}"
+}
+响应
+{
+    "name":"download_cloud_models",
+    "data":{
+        "ret":true,
+        "desc":"SUC:DownloadLine 100"
+    }
+}
+
+13.控制台命令交互
+直接向设备发送原始控制台指令
+{
+    "name":"send_cmd",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"cmd\":\"120GET:CCV\",\"multi_frames\":false}"
+}
+响应
+{
+    "name":"send_cmd",
+    "data":{
+        "ret":true,
+        "desc":"100"
+    }
+}
+
+14.检查云端新版本
+请求
+{
+    ...
+    "name":"check_loaders_new_version",
+    "data":{}
+}
+响应
+{
+    ...
+    "name":"check_loaders_new_version",
+    "data":{
+        "ret":true,
+        "desc":[
+            {
+               "ip":"127.0.0.1",
+               "devices":[
+                    {"loader_name":"loader-0", "loader_num":0, "sn":"1755350617","current_version":"", "target_version":"V4.11.SP04.AI", "progress":0}
+                    ...
+               ] 
+            }
+        ]
+    }
+}
+
+15.单设备云端OTA升级
+对指定设备进行云端OTA升级
+请求
+{
+    ...
+    "name":"update_one_loader",
+    "data":{
+        "device_id":"127.0.0.1",
+        "loader_num":0
+    }
+}
+进度上报（异步推送）
+{
+    ...
+    "name":"update_ota_progress",
+    "data":{
+        "ip":"127.0.0.1",
+        "loader_name":"loader-0",
+        "loader_num":0,
+        "progress":6.0 # 进度百分比
+    }
+}
+最终响应
+{
+    ...
+    "name":"update_loaders",
+    "data":{
+        "ip":"127.0.0.1",
+        "loader_num":0,
+        "loader_ota_status":"success",
+        "desc":"loader-hub:127.0.01 loader-0 OTA success"
+    }
+}
+
+16.bin文件解析（上位机解析本地 bin 文件）
+用于：UI 的“模型编辑”通过路径让后端解析本地已存在的 bin 文件内容。
+请求
+{
+    "topic":"LOADER",
+    "cmd_id":,
+    "name":"bin_parse",
+    "data":"{\"path\":\"project1/example.bin\"}"
+}
+响应（同步）
+{
+    "topic":"LOADER",
+    "cmd_id":,
+    "name":"bin_parse",
+    "data":{
+        "ret":true,
+        "desc":"parse success",
+        "data":{
+            "success":true,
+            "filename":"example.bin",
+            "modules":[
+                {
+                    "name":"WINDOW_R",
+                    "params":[
+                        {"name":"up_limit","type":"single","value":2200},
+                        {"name":"matrix1","type":"array","value":[1,2,3]}
+                    ]
+                }
+            ],
+            "content":"...bin原始文本内容"
+            "warnings":[],
+            "errors":[]
+        }
+    }
+}
+
+17.单个寄存器设置
+请求
+{
+    ...
+    "name":"set_reg_value",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"reg_name\":\"CCV\",\"reg_value\":\"0\"}"
+}
+响应
+{
+    ...
+    "name":"set_reg_value",
+    "data":{"ret":true,"desc":""}
+}
+
+18.单个寄存器刷新
+请求
+{
+    ...
+    "name":"wait_reg_value",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"reg_name\":\"CCV\"}"
+}
+返回
+{
+    "name":"wait_reg_value",
+    "data":{"ret":true,"desc":"100"}
+}
+
+19.保存实验室机柜位置信息接口
+请求
+{
+    ...
+    "name":"save_location_info",
+    "data":"{\"location\":\"具体实验室位置"}"
+}
+响应
+{
+    "name":"save_location_info",
+    "data":{
+        "ret":true,
+        "desc":"save location info success"
+    }
+}
+
+20.获取服务器本地资源文件夹文件列表（参数编辑页面打开时调用）
+请求
+{
+    ...
+    "name":"get_local_file_list",
+    "data":"{}"
+}
+响应
+{
+    "name":"get_local_file_list",
+    "data":{
+        "ret":true,
+        "desc":[
+            {
+                "filename":"example.bin",
+                "path":"project1/example.bin",
+                "size":1024,
+                "modified_time":"2024-01-01 12:00:00"
+            },
+            ...
+        ]
+    }
+}
+
+21.从服务器本地读取文件内容（选中文件时调用）
+请求
+{
+    ...
+    "name":"read_local_file",
+    "data":"{\"path\":\"project1/example.bin\"}"
+}
+响应
+{
+    "name":"read_local_file",
+    "data":{
+        "ret":true,
+        "desc":"",
+        "data":{
+            "content":"...bin文件原始文本内容",
+            "filename":"example.bin",
+            "path":"project1/example.bin"
+        }
+    }
+}
+
+22.保存文件到服务器本地（保存时调用）
+请求
+{
+    ...
+    "name":"save_local_file",
+    "data":"{\"path\":\"project1/example.bin\",\"content\":\"...bin文件内容\"}"
+}
+响应
+{
+    "name":"save_local_file",
+    "data":{
+        "ret":true,
+        "desc":"save local file success"
+    }
+}
+
+23.另存为文件到服务器本地（另存为时调用）
+请求
+{
+    ...
+    "name":"save_as_local_file",
+    "data":"{\"path\":\"project1/new_example.bin\",\"content\":\"...bin文件内容\"}"
+}
+响应
+{
+    "name":"save_as_local_file",
+    "data":{
+        "ret":true,
+        "desc":"save as local file success"
+    }
+}
+
+24.上传文件到云端（上传云端时调用）
+请求
+{
+    ...
+    "name":"upload_to_cloud",
+    "data":"{\"path\":\"project1/example.bin\"}"
+}
+响应
+{
+    "name":"upload_to_cloud",
+    "data":{
+        "ret":true,
+        "desc":"upload to cloud success"
+    }
+}
+
+25.从设备获取文件到服务器本地（设备获取时调用）
+请求
+{
+    ...
+    "name":"download_from_device",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"device_path\":\"project1/example.bin\",\"local_path\":\"project1/example.bin\"}"
+}
+响应
+{
+    "name":"download_from_device",
+    "data":{
+        "ret":true,
+        "desc":"download from device success"
+    }
+}
+
+26.应用参数到设备（应用时调用）
+请求
+{
+    ...
+    "name":"apply_params_to_device",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"path\":\"project1/example.bin\",\"content\":\"...bin文件内容\"}"
+}
+响应
+{
+    "name":"apply_params_to_device",
+    "data":{
+        "ret":true,
+        "desc":"apply params to device success"
+    }
+}
+
+27.停止所有定时器
+请求
+{
+    ...
+    "name":"stop_all_timers",
+    "data":"{}"
+}
+响应
+{
+    "name":"stop_all_timers",
+    "data":{
+        "ret":true,
+        "desc":"stop all timers success"
+    }
+}
+
+28.删除服务器本地文件
+请求
+{
+    ...
+    "name":"delete_local_file",
+    "data":"{\"path\":\"project1/example.bin\"}"
+}
+响应
+{
+    "name":"delete_local_file",
+    "data":{
+        "ret":true,
+        "desc":"delete local file success"
+    }
+}
+
+29.OTA升级近端升级
+使用本地指定路径的固定文件对指定Loader进行升级
+请求
+{
+    ...
+    "name":"loader_ota",
+    "data":{
+        "device_id":"127.0.0.1",
+        "loader_num":0,
+        "path":"D\\worksapce\\aaa.hex"
+    }
+}
+响应
+{
+    ...
+    "name":"update_ota_progress",
+    "data":{
+        "ip":"127.0.0.1",
+        "loader_name":"loader-0",
+        "loader_num":0,
+        "progress":68.0
+    }
+}
+
+30.文件拉取接口
+请求
+{
+    ...
+    "name":"pull_file",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"path\":\"文件路径\"}"
+}
+响应
+{
+    ...
+    "name":"pull_file",
+    "data":{
+        "ret":true,
+        "desc":"pull file log/PT001.log successs"
+    }
+}
+
+31.定时获取寄存器值
+请求
+{
+    ...
+    "name":"schedule_refresh_signals",
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"regs\":[\"CCV\",\"DO1\",...],\"period\":5000}"
+}
+定时响应
+{
+    "name":"refresh_signals",
+    "data":[
+        {"name":"CCV","desc":"主回路电流设定值(mA)"，"value":"100"},
+        {"name":"DO1","desc":"DO输出1","value":"1"}
+        ...
+    ]
+}
+
+32.停止定时获取寄存器值
+请求
+{
+    ...
+    "name":"stop_refresh_regs",
+    "data":"{}"
+}
+响应
+{
+    ...
+    "name":"stop_refresh_regs",
+    "data":{"ret":true,"desc":"success"}
+}

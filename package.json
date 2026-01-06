@@ -1,0 +1,40 @@
+{
+  "name": "loader-ui",
+  "version": "1.0.0",
+  "description": "电子负载设备上位机 - 仿真模型参数管理界面",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm run serve",
+    "build": "cd client && npm run build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "ws": "^8.14.2",
+    "multer": "^1.4.5-lts.1",
+    "python-shell": "^5.0.0",
+    "chokidar": "^3.5.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "electronic-load",
+    "simulation",
+    "parameter-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": "12.16.3",
+    "npm": "10.9.0"
+  }
+}
+
+
+
+

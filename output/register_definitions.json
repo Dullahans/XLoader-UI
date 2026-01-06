@@ -1,0 +1,28 @@
+{
+  "definitions": [
+    { "id": "0x0000", "name": "CCV", "type": "int", "access": "readwrite", "min": 0, "max": 21000, "description": "设置电流值；mA" },
+    { "id": "0x0001", "name": "FO1", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "FO输出1；1->高电平，0->低电平" },
+    { "id": "0x0002", "name": "FO2", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "FO输出2；1->高电平，0->低电平" },
+    { "id": "0x0003", "name": "FO3", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "FO输出3；1->高电平，0->低电平" },
+    { "id": "0x0004", "name": "FO4", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "FO输出4；1->高电平，0->低电平" },
+    { "id": "0x0005", "name": "DI1", "type": "int", "access": "read", "min": 0, "max": 1, "description": "DI输入1；1->高电平，0->低电平" },
+    { "id": "0x0006", "name": "DI2", "type": "int", "access": "read", "min": 0, "max": 1, "description": "DI输入2；1->高电平，0->低电平" },
+    { "id": "0x0007", "name": "DI3", "type": "int", "access": "read", "min": 0, "max": 1, "description": "DI输入3；1->高电平，0->低电平" },
+    { "id": "0x0008", "name": "DI4", "type": "int", "access": "read", "min": 0, "max": 1, "description": "DI输入4；1->高电平，0->低电平" },
+    { "id": "0x0009", "name": "DO1", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "DO输出4；1->导通，0->关闭" },
+    { "id": "0x000A", "name": "DO2", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "DO输出4；1->导通，0->关闭" },
+    { "id": "0x000B", "name": "DO3", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "DO输出4；1->导通，0->关闭" },
+    { "id": "0x000C", "name": "DO4", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "DO输出4；1->导通，0->关闭" },
+    { "id": "0x000D", "name": "AO1", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "AOR输出1；1->电阻，0->断路" },
+    { "id": "0x000E", "name": "AO2", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "AOR输出2；1->电阻，0->断路" },
+    { "id": "0x000F", "name": "AO3", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "AOR输出3；1->电阻，0->断路" },
+    { "id": "0x0010", "name": "AO4", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "AOR输出4；1->电阻，0->断路" },
+    { "id": "0x0011", "name": "AOV1", "type": "int", "access": "readwrite", "min": 0, "max": 5000, "description": "AOv输出5；mV" },
+    { "id": "0x0012", "name": "AOV2", "type": "int", "access": "readwrite", "min": 0, "max": 5000, "description": "AOv输出6；mV" },
+    { "id": "0x0013", "name": "POSITIONID", "type": "int", "access": "readwrite", "min": 0, "max": 2047, "description": "机箱位置ID" },
+    { "id": "0x0014", "name": "CANRES", "type": "int", "access": "readwrite", "min": 0, "max": 1, "description": "机箱总线终端电阻；1->开启，0->关闭" },
+    { }
+  ]
+}
+
+

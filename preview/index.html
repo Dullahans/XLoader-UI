@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电子负载上位机</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #3b82f6;
+      --primary-bg: rgba(37, 99, 235, 0.08);
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --info-color: #6366f1;
+      --running-color: #8b5cf6;
+      --bg-page: #f8fafc;
+      --bg-white: #ffffff;
+      --bg-gray: #f1f5f9;
+      --bg-hover: #e2e8f0;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --border-light: #f1f5f9;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --font-sans: 'Noto Sans SC', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --sidebar-width: 260px;
+      --toolbar-height: 52px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: var(--font-sans); font-size: 14px; color: var(--text-primary); background: var(--bg-page); }
+    #app { height: 100%; }
+
+    .app-layout { display: flex; height: 100%; }
+
+    /* 左侧设备边栏 */
+    .device-sidebar {
+      width: calc(var(--sidebar-width) * 1.5);
+      background: var(--bg-white);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-header i { color: var(--primary-color); }
+
+    .ws-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      margin-left: auto;
+      transition: all 0.3s;
+    }
+
+    .ws-indicator.connected {
+      background: var(--success-color);
+      box-shadow: 0 0 6px var(--success-color);
+    }
+
+    .device-card {
+      margin: 12px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .device-visual {
+      height: 140px;
+      background: linear-gradient(180deg, #dbeafe 0%, #bfdbfe 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .device-image {
+      width: 120px;
+      height: 90px;
+      background: linear-gradient(145deg, #374151 0%, #1f2937 100%);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .device-screen {
+      width: 80px;
+      height: 36px;
+      background: #000;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      color: #00ff88;
+      text-shadow: 0 0 8px #00ff88;
+    }
+
+    .device-leds { display: flex; gap: 6px; }
+    .led { width: 6px; height: 6px; border-radius: 50%; background: #333; }
+    .led.power { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+    .led.run { background: var(--primary-light); box-shadow: 0 0 6px var(--primary-light); animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .device-info { padding: 12px; }
+    .device-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .device-sn { 
+      font-size: 11px; 
+      color: var(--primary-color); 
+      font-family: var(--font-mono); 
+      background: var(--primary-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .device-meta { font-size: 12px; color: var(--text-muted); }
+    .meta-row { display: flex; justify-content: space-between; padding: 2px 0; }
+    .meta-value { font-family: var(--font-mono); color: var(--text-secondary); }
+
+    /* ===== 左侧：实验室/机箱/设备（用于预览样式） ===== */
+    .sidebar-scroll { flex: 1; overflow: auto; padding: 12px; }
+    .lab-block { margin-bottom: 14px; }
+    .lab-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .lab-name { font-weight: 600; color: var(--text-primary); }
+    .lab-count { font-size: 11px; color: var(--text-muted); }
+
+    .cabinet-block { margin-bottom: 12px; }
+    .cabinet-stack { position: relative; height: 190px; margin-top: 8px; }
+    .cabinet-frame {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      background: var(--bg-gray);
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-rows: 44px 34px 1fr;
+    }
+    .cabinet-frame-bg { position: absolute; inset: 0; z-index: 0; }
+    .cabinet-frame-bg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cabinet-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+      gap: 8px;
+    }
+    .cabinet-row.logo { background: rgba(15, 23, 42, 0.86); border-bottom: 1px solid rgba(31, 41, 55, 0.7); }
+    .cabinet-row.ip { background: rgba(241, 245, 249, 0.95); }
+    .cabinet-logo { height: 22px; width: auto; display: block; }
+    .cabinet-ip-text { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); }
+    .cabinet-body { position: relative; z-index: 1; padding: 8px 10px 10px; }
+    .cabinet-device-grid {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 2px;
+      align-items: end;
+      padding: 0;
+    }
+    .device-item { text-align: center; }
+    .device-pic { position: relative; width: 58px; height: 78px; margin: 0 auto; }
+    .device-pic img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .rgb-dot {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #94a3b8; /* 灰 */
+      border: 2px solid rgba(255,255,255,0.95);
+      outline: 1px solid rgba(0,0,0,0.18);
+      box-shadow: none;
+    }
+    .rgb-dot.connected { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.55); }
+    .rgb-dot.running { background: #3b82f6; box-shadow: 0 0 8px rgba(59, 130, 246, 0.55); }
+    .rgb-dot.alarm { background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.55); }
+    .device-index {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #fff;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 1px 5px;
+      border-radius: 6px;
+    }
+    .device-model {
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--text-secondary);
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.2;
+      min-height: calc(1.2em * 2);
+    }
+    .device-item.selected .device-pic {
+      border-radius: 10px;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.55), 0 8px 18px rgba(37, 99, 235, 0.18);
+      background: rgba(37, 99, 235, 0.06);
+    }
+    .device-item.selected .device-model { color: var(--primary-color); font-weight: 600; }
+
+    .connection-status {
+      margin: 0 12px 12px;
+      padding: 10px 12px;
+      background: var(--bg-gray);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+    .status-indicator.connected { background: var(--success-color); box-shadow: 0 0 6px var(--success-color); }
+    .status-text { flex: 1; }
+    .status-title { font-size: 12px; font-weight: 500; }
+    .status-desc { font-size: 10px; color: var(--text-muted); }
+
+    .connect-btn { margin: 0 12px 12px; }
+    .connect-btn .el-button { width: 100%; }
+
+    .running-model {
+      margin: 0 12px 12px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 6px;
+    }
+
+    .running-model-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .running-model-header i {
+      color: var(--running-color);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .running-model-title { font-size: 11px; font-weight: 500; color: var(--running-color); }
+    .running-model-info { font-size: 12px; }
+    .running-file { font-family: var(--font-mono); color: var(--text-primary); font-weight: 500; }
+    .running-module { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+    .run-status { margin: 0 12px 12px; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+    .run-status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; }
+    .run-badge { padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: 500; }
+    .run-badge.running { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+    .run-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-box { background: var(--bg-gray); padding: 6px; border-radius: 4px; text-align: center; }
+    .stat-value { font-size: 14px; font-weight: 600; font-family: var(--font-mono); }
+    .stat-label { font-size: 9px; color: var(--text-muted); }
+
+    /* 右侧主区域 */
+    .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .toolbar {
+      height: var(--toolbar-height);
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 8px;
+    }
+
+    .toolbar-title { font-size: 16px; font-weight: 600; margin-right: 20px; }
+    .toolbar-buttons { display: flex; gap: 6px; flex: 1; }
+
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      background: var(--bg-gray);
+      border: 1px solid transparent;
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tool-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .tool-btn.active { background: var(--primary-bg); color: var(--primary-color); border-color: var(--primary-color); }
+    .tool-btn i { font-size: 14px; }
+
+    .content-area { flex: 1; display: flex; flex-direction: column; padding: 16px 20px; overflow: hidden; }
+
+    .page-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      background: var(--bg-white);
+      padding: 3px;
+      border-radius: 8px;
+      width: fit-content;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .page-tab {
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      background: transparent;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-tab:hover { color: var(--text-primary); background: var(--bg-gray); }
+    .page-tab.active { color: var(--primary-color); background: var(--primary-bg); }
+
+    .page-content {
+      flex: 1;
+      background: var(--bg-white);
+      border-radius: 10px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: none;
+    }
+
+    .page-content.active { display: flex; flex-direction: column; }
+
+    .page-header {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .page-title { font-size: 15px; font-weight: 600; }
+    
+    .btn-group { display: flex; gap: 8px; align-items: center; }
+    .btn-divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-white);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: var(--primary-bg); }
+    .action-btn.primary { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+    .action-btn.primary:hover { background: var(--primary-dark); }
+    .action-btn.success { background: var(--success-color); border-color: var(--success-color); color: white; }
+    .action-btn.success:hover { background: #059669; }
+    .action-btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .action-btn i { font-size: 14px; }
+
+    .page-body { flex: 1; padding: 16px 20px; overflow-y: auto; }
+
+    /* 模型编辑页面 */
+    .model-layout { display: flex; gap: 16px; height: 100%; }
+
+    .model-list {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border-color);
+      padding-right: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .model-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .sn-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--primary-color);
+      background: var(--primary-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .model-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .model-item:hover { background: var(--bg-gray); }
+    .model-item.active { background: var(--primary-bg); border-color: var(--primary-color); }
+    .model-item.has-error { border-color: var(--error-color); background: rgba(239, 68, 68, 0.05); }
+    
+    .model-item.is-running {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+      border-color: var(--running-color);
+    }
+
+    .model-item.is-running::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--running-color);
+      border-radius: 3px 0 0 3px;
+    }
+
+    .model-item i { color: var(--text-muted); font-size: 16px; }
+    .model-item.active i { color: var(--primary-color); }
+    .model-item.is-running i { color: var(--running-color); }
+    .model-item-info { flex: 1; min-width: 0; }
+    .model-item-name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .model-item-size { font-size: 10px; color: var(--text-muted); }
+    .model-item-badge { font-size: 9px; padding: 1px 4px; border-radius: 3px; }
+    .model-item-badge.running { background: var(--running-color); color: white; }
+
+    .model-editor { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    .editor-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .editor-filename {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .editor-filename i { color: var(--primary-color); }
+    .modified-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning-color); }
+
+    /* 模块折叠区 */
+    .module-section {
+      margin-bottom: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .module-section.is-running {
+      border-color: var(--running-color);
+      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2);
+    }
+
+    .module-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: var(--bg-gray);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .module-section.is-running .module-header {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+    }
+
+    .module-header:hover { background: var(--bg-hover); }
+
+    .module-toggle {
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+    }
+
+    .module-toggle.expanded { transform: rotate(90deg); }
+
+    .module-info { flex: 1; }
+    
+    .module-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .module-name {
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: var(--primary-color);
+    }
+
+    .module-section.is-running .module-name { color: var(--running-color); }
+
+    .module-name-cn {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: normal;
+    }
+
+    .module-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .module-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--bg-white);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .running-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: var(--running-color);
+      background: rgba(139, 92, 246, 0.15);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    .running-indicator i { animation: blink 1s infinite; }
+
+    .module-body { display: none; padding: 12px 14px; }
+    .module-body.expanded { display: block; }
+
+    /* 参数行 - 增强版 */
+    .param-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .param-row:hover { 
+      background: var(--bg-gray); 
+      border-color: var(--border-color);
+    }
+
+    .param-label-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .param-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .param-key {
+      font-size: 12px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    .param-name-cn {
+      font-size: 11px;
+      color: var(--primary-color);
+      background: var(--primary-bg);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .param-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .param-range {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .param-range i {
+      font-size: 12px;
+      color: var(--info-color);
+    }
+
+    .param-input-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .param-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .param-unit {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      min-width: 40px;
+    }
+
+    .param-type-badge {
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: var(--bg-gray);
+      color: var(--text-muted);
+    }
+
+    /* 参数值超出范围警告 */
+    .param-row.out-of-range {
+      border-color: var(--warning-color);
+      background: rgba(245, 158, 11, 0.05);
+    }
+
+    .range-warning {
+      font-size: 10px;
+      color: var(--warning-color);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* 数组显示 */
+    .array-display {
+      background: var(--bg-gray);
+      border-radius: 6px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .array-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .array-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .array-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .array-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg-white);
+      padding: 4px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .array-index {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      min-width: 24px;
+    }
+
+    .array-item .el-input-number { width: 90px; }
+    .array-item .el-input { width: 80px; }
+    .array-item .el-button { padding: 2px; color: var(--text-muted); }
+    .array-item .el-button:hover { color: var(--error-color); }
+
+    /* 矩阵显示 */
+    .matrix-display {
+      background: var(--bg-gray);
+      border-radius: 6px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    .matrix-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .matrix-size {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .matrix-table {
+      overflow-x: auto;
+    }
+
+    .matrix-header {
+      display: flex;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 6px;
+    }
+
+    .matrix-header-cell {
+      width: 80px;
+      text-align: center;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .matrix-row {
+      display: flex;
+      gap: 8px;
+      padding: 4px 0;
+      align-items: center;
+    }
+
+    .matrix-row:hover {
+      background: var(--bg-hover);
+      margin: 0 -6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    .matrix-row-index {
+      width: 24px;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .matrix-cell-input {
+      width: 80px !important;
+      flex-shrink: 0;
+    }
+
+    .matrix-action-cell {
+      width: 24px;
+      flex-shrink: 0;
+    }
+
+    .matrix-delete-btn {
+      padding: 2px;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .matrix-row:hover .matrix-delete-btn {
+      opacity: 1;
+    }
+
+    .matrix-delete-btn:hover {
+      color: var(--error-color);
+    }
+
+    /* 数据目录提示 */
+    .data-path {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 8px 12px;
+      background: var(--bg-gray);
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .data-path i { color: var(--primary-color); }
+
+    /* 空状态 */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: var(--text-muted);
+    }
+
+    .empty-state i { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 13px; }
+
+    /* 未知参数标记 */
+    .param-unknown {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ============================================
+       设备信息页样式
+    ============================================ */
+    
+    .device-overview-card {
+      display: flex;
+      gap: 24px;
+      padding: 20px;
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .device-photo {
+      width: 280px;
+      height: 200px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg-gray);
+    }
+
+    .device-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .device-photo-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      gap: 8px;
+    }
+
+    .device-photo-overlay i {
+      font-size: 32px;
+      color: var(--warning-color);
+    }
+
+    .device-overview-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .device-overview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .device-model-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .device-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .info-value.sn {
+      font-family: var(--font-mono);
+      color: var(--primary-color);
+      background: var(--primary-bg);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .info-value.mono {
+      font-family: var(--font-mono);
+    }
+
+    .info-value.highlight {
+      color: var(--success-color);
+    }
+
+    .running-model-info {
+      margin-top: auto;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(139, 92, 246, 0.05) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: 8px;
+    }
+
+    .running-model-info.stopped {
+      background: var(--bg-gray);
+      border-color: var(--border-color);
+    }
+
+    .running-model-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: var(--running-color);
+      color: white;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .running-model-badge i {
+      animation: pulse 2s infinite;
+    }
+
+    .running-model-badge.stopped {
+      background: var(--text-muted);
+    }
+
+    .running-model-badge.stopped i {
+      animation: none;
+    }
+
+    .running-model-detail {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .running-label {
+      color: var(--text-muted);
+    }
+
+    .running-value {
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    /* 规格区域 */
+    .spec-section, .realtime-section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .section-title i {
+      color: var(--primary-color);
+    }
+
+    .spec-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .spec-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+
+    .spec-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .spec-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .spec-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+    }
+
+    .spec-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* 实时数据 */
+    .realtime-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .realtime-card {
+      padding: 16px;
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      position: relative;
+    }
+
+    .realtime-value {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+    }
+
+    .realtime-unit {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .realtime-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .realtime-bar {
+      height: 4px;
+      background: var(--bg-gray);
+      border-radius: 2px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .realtime-bar-fill {
+      height: 100%;
+      background: var(--primary-color);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* ============================================
+       寄存器管理页样式
+    ============================================ */
+    
+    .register-page {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .register-filters {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .register-table-container {
+      flex: 1;
+      overflow: auto;
+      margin-top: 12px;
+    }
+
+    .register-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .register-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .register-table th {
+      background: var(--bg-gray);
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 2px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    .register-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-light);
+      vertical-align: middle;
+    }
+
+    .register-table tr:hover {
+      background: var(--primary-bg);
+    }
+
+    .register-table tr.reg-modified {
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    .reg-name {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .reg-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .reg-value-cell {
+      min-width: 180px;
+    }
+
+    .reg-value {
+      font-family: var(--font-mono);
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .reg-value.readonly {
+      background: var(--bg-gray);
+      color: var(--text-primary);
+    }
+
+    .reg-input-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .reg-current-value {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .reg-input {
+      padding: 6px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%;
+      max-width: 180px;
+      transition: all 0.2s;
+    }
+
+    .reg-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px var(--primary-bg);
+    }
+
+    .reg-input::placeholder {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .reg-actions {
+      white-space: nowrap;
+    }
+
+    .reg-actions .el-button {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    .register-stats {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    /* 滚动条 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-gray); }
+    ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="app-layout">
+      <!-- 左侧设备边栏 -->
+      <aside class="device-sidebar">
+        <div class="sidebar-header">
+          <i class="el-icon-cpu"></i>
+          设备面板
+          <el-tooltip :content="wsConnected ? 'WebSocket已连接' : 'WebSocket未连接'" placement="right">
+            <span class="ws-indicator" :class="{ connected: wsConnected }"></span>
+          </el-tooltip>
+        </div>
+
+        <!-- 预览：实验室/机箱/设备布局（与实际项目保持一致） -->
+        <div style="padding: 12px;">
+          <el-select v-model="selectedLocation" size="mini" placeholder="请选择实验室" style="width: 100%;">
+            <el-option v-for="loc in locationList" :key="loc" :label="loc" :value="loc"></el-option>
+          </el-select>
+        </div>
+
+        <div class="sidebar-scroll">
+          <div v-for="lab in labView" :key="lab.labKey" class="lab-block">
+            <div class="lab-header">
+              <span class="lab-name">{{ lab.labKey }}</span>
+              <span class="lab-count">{{ lab.cabinets.length }} 机箱</span>
+            </div>
+
+            <div v-for="cab in lab.cabinets" :key="cab.ip" class="cabinet-block">
+              <div class="cabinet-stack">
+                <div class="cabinet-frame">
+                  <div class="cabinet-frame-bg">
+                    <img src="img/cabinet.png" alt="cabinet" />
+                  </div>
+                  <div class="cabinet-row logo">
+                    <img class="cabinet-logo" src="img/logo.png" alt="logo" />
+                  </div>
+                  <div class="cabinet-row ip">
+                    <span class="cabinet-ip-text">IP: {{ cab.ip }}</span>
+                  </div>
+                  <div class="cabinet-body">
+                    <div class="cabinet-device-grid">
+                      <div
+                        v-for="dev in cab.devices"
+                        :key="dev.loader_num"
+                        class="device-item"
+                        :class="{ selected: isSelectedDevice(dev, cab) }"
+                        @click="selectDevice(dev, cab)"
+                        title="单击选中该设备"
+                      >
+                        <div class="device-pic">
+                          <img src="img/device.png" alt="device" />
+                          <span class="rgb-dot" :class="deviceLedClass(dev)"></span>
+                          <span class="device-index">{{ dev.loader_num + 1 }}</span>
+                        </div>
+                        <div class="device-model" :title="dev.running_model || ''">
+                          {{ dev.running_model || '—' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 右侧主区域 -->
+      <div class="main-area">
+        <div class="toolbar">
+          <span class="toolbar-title">电子负载上位机</span>
+          <div class="toolbar-buttons">
+            <button class="tool-btn" :class="{ active: activeTool === 'device' }" @click="activeTool = 'device'">
+              <i class="el-icon-setting"></i>设备管理
+            </button>
+            <button class="tool-btn" :class="{ active: activeTool === 'model' }" @click="activeTool = 'model'">
+              <i class="el-icon-files"></i>模型管理
+            </button>
+            <button class="tool-btn" :class="{ active: activeTool === 'upgrade' }" @click="activeTool = 'upgrade'">
+              <i class="el-icon-upload"></i>设备升级
+            </button>
+            <button class="tool-btn" :class="{ active: activeTool === 'log' }" @click="activeTool = 'log'">
+              <i class="el-icon-document"></i>日志拉取
+            </button>
+            <button class="tool-btn" :class="{ active: activeTool === 'console' }" @click="activeTool = 'console'">
+              <i class="el-icon-monitor"></i>控制台
+            </button>
+          </div>
+        </div>
+
+        <div class="content-area">
+          <div class="page-tabs">
+            <button class="page-tab" :class="{ active: activePage === 'info' }" @click="activePage = 'info'">设备信息</button>
+            <button class="page-tab" :class="{ active: activePage === 'model' }" @click="activePage = 'model'">模型编辑</button>
+            <button class="page-tab" :class="{ active: activePage === 'register' }" @click="activePage = 'register'">寄存器管理</button>
+          </div>
+
+          <!-- 设备信息页 -->
+          <div class="page-content" :class="{ active: activePage === 'info' }">
+            <div class="page-header">
+              <h2 class="page-title">设备信息</h2>
+              <el-button size="mini" icon="el-icon-refresh" @click="refreshDeviceInfo">刷新</el-button>
+            </div>
+            <div class="page-body">
+              <!-- 设备概览卡片 -->
+              <div class="device-overview-card">
+                <div class="device-photo">
+                  <img src="img/device_info.png" alt="设备图片" />
+                  <div class="device-photo-overlay" v-if="!deviceConnected">
+                    <i class="el-icon-warning"></i>
+                    <span>设备未连接</span>
+                  </div>
+                </div>
+                <div class="device-overview-info">
+                  <div class="device-overview-header">
+                    <h3 class="device-model-name">EL-5000 电子负载</h3>
+                    <el-tag :type="deviceConnected ? 'success' : 'info'" size="small">
+                      {{ deviceConnected ? '在线' : '离线' }}
+                    </el-tag>
+                  </div>
+                  
+                  <div class="device-info-grid">
+                    <div class="info-item">
+                      <span class="info-label">设备序列号</span>
+                      <span class="info-value sn">{{ deviceInfo.sn || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">硬件版本</span>
+                      <span class="info-value">{{ deviceInfo.hardwareVersion || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">软件版本</span>
+                      <span class="info-value">{{ deviceInfo.softwareVersion || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">运行时间</span>
+                      <span class="info-value highlight">{{ deviceInfo.runTime || '--' }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 正在运行的模型 -->
+                  <div class="running-model-info" v-if="deviceConnected && isModelRunning">
+                    <div class="running-model-badge">
+                      <i class="el-icon-video-play"></i>
+                      <span>模型运行中</span>
+                    </div>
+                    <div class="running-model-detail">
+                      <span class="running-label">文件:</span>
+                      <span class="running-value">{{ runningFile }}</span>
+                      <span class="running-label">模块:</span>
+                      <span class="running-value">{{ getModuleDisplayName(runningModule) }}</span>
+                    </div>
+                  </div>
+                  <div class="running-model-info stopped" v-else-if="deviceConnected">
+                    <div class="running-model-badge stopped">
+                      <i class="el-icon-video-pause"></i>
+                      <span>模型未运行</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 设备规格 -->
+              <div class="spec-section">
+                <h4 class="section-title">
+                  <i class="el-icon-data-analysis"></i>
+                  设备规格
+                </h4>
+                <div class="spec-grid">
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
+                      <i class="el-icon-s-data"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">100 A</span>
+                      <span class="spec-label">最大电流</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
+                      <i class="el-icon-lightning"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">600 V</span>
+                      <span class="spec-label">最大电压</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);">
+                      <i class="el-icon-odometer"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">50 kW</span>
+                      <span class="spec-label">最大功率</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--running-color);">
+                      <i class="el-icon-time"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">100 kHz</span>
+                      <span class="spec-label">采样率</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 实时数据 -->
+              <div class="realtime-section" v-if="deviceConnected">
+                <h4 class="section-title">
+                  <i class="el-icon-data-line"></i>
+                  实时数据
+                </h4>
+                <div class="realtime-grid">
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.current.toFixed(1) }}</span>
+                    <span class="realtime-unit">A</span>
+                    <span class="realtime-label">电流</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.current / 100 * 100) + '%' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.voltage.toFixed(0) }}</span>
+                    <span class="realtime-unit">V</span>
+                    <span class="realtime-label">电压</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.voltage / 600 * 100) + '%', background: 'var(--success-color)' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.power.toFixed(1) }}</span>
+                    <span class="realtime-unit">kW</span>
+                    <span class="realtime-label">功率</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.power / 50 * 100) + '%', background: 'var(--warning-color)' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.temperature }}</span>
+                    <span class="realtime-unit">°C</span>
+                    <span class="realtime-label">温度</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.temperature / 80 * 100) + '%', background: realtimeData.temperature > 60 ? 'var(--error-color)' : 'var(--running-color)' }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 模型编辑页 -->
+          <div class="page-content" :class="{ active: activePage === 'model' }">
+            <div class="page-header">
+              <h2 class="page-title">模型编辑</h2>
+              <div class="btn-group">
+                <el-tooltip content="上传当前文件到云端服务器" placement="top">
+                  <button class="action-btn" :disabled="!currentModel || !currentModel.success">
+                    <i class="el-icon-upload2"></i>上传云端
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="从云端获取模型文件列表" placement="top">
+                  <button class="action-btn">
+                    <i class="el-icon-download"></i>云端获取
+                  </button>
+                </el-tooltip>
+                
+                <span class="btn-divider"></span>
+                
+                <el-tooltip content="将当前文件导入到设备存储" placement="top">
+                  <button class="action-btn" :disabled="!deviceConnected || !currentModel || !currentModel.success">
+                    <i class="el-icon-top"></i>导入设备
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="从设备读取模型文件" placement="top">
+                  <button class="action-btn" :disabled="!deviceConnected">
+                    <i class="el-icon-bottom"></i>设备获取
+                  </button>
+                </el-tooltip>
+                
+                <span class="btn-divider"></span>
+                
+                <el-tooltip content="保存到本地文件" placement="top" :open-delay="500">
+                  <button class="action-btn primary" :disabled="!currentModel || !hasModified" @click="handleSave">
+                    <i class="el-icon-folder-checked"></i>保存
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="另存为新文件" placement="top" :open-delay="500">
+                  <button class="action-btn primary" :disabled="!currentModel || !currentModel.success" @click="handleSaveAs">
+                    <i class="el-icon-document-add"></i>另存为
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="更新设备输出（立即生效）" placement="top" :open-delay="500">
+                  <button class="action-btn success" :disabled="!canApply" @click="handleApply">
+                    <i class="el-icon-video-play"></i>应用
+                  </button>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="page-body">
+              <div class="data-path">
+                <i class="el-icon-folder"></i>
+                <span>数据目录: data/{{ deviceSN }}/</span>
+              </div>
+              
+              <div class="model-layout">
+                <!-- 模型列表 -->
+                <div class="model-list">
+                  <div class="model-list-header">
+                    <span>模型文件</span>
+                    <span class="sn-badge">{{ deviceSN }}</span>
+                  </div>
+                  <div 
+                    v-for="(model, index) in models" 
+                    :key="index"
+                    class="model-item"
+                    :class="{ 
+                      active: activeModelIndex === index,
+                      'has-error': model.errors && model.errors.length > 0,
+                      'is-running': isFileRunning(model.filename)
+                    }"
+                    @click="selectModel(index)"
+                  >
+                    <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
+                    <div class="model-item-info">
+                      <div class="model-item-name">{{ model.filename }}</div>
+                      <div class="model-item-size">{{ model.modules ? model.modules.length + ' 个模块' : '解析失败' }}</div>
+                    </div>
+                    <span v-if="isFileRunning(model.filename)" class="model-item-badge running">
+                      <i class="el-icon-video-play"></i>
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- 编辑器 -->
+                <div class="model-editor" v-if="currentModel">
+                  <div class="editor-toolbar">
+                    <div class="editor-filename">
+                      <i class="el-icon-document"></i>
+                      <span>{{ currentModel.filename }}</span>
+                      <span class="modified-dot" v-if="hasModified"></span>
+                      <el-tag v-if="isFileRunning(currentModel.filename)" size="mini" type="warning" effect="dark">
+                        <i class="el-icon-video-play"></i> 运行中
+                      </el-tag>
+                    </div>
+                    <el-button type="text" size="mini" icon="el-icon-view" @click="showRaw = !showRaw">
+                      {{ showRaw ? '编辑视图' : '原始内容' }}
+                    </el-button>
+                  </div>
+                  
+                  <!-- 原始内容视图 -->
+                  <div v-if="showRaw" style="flex: 1; overflow: auto;">
+                    <pre style="background: var(--bg-gray); padding: 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap;">{{ currentModel.raw }}</pre>
+                  </div>
+                  
+                  <!-- 模块编辑视图 -->
+                  <div v-else style="flex: 1; overflow-y: auto;">
+                    <div v-if="currentModel.modules && currentModel.modules.length">
+                      <div 
+                        v-for="(mod, mi) in currentModel.modules" 
+                        :key="mi" 
+                        class="module-section"
+                        :class="{ 'is-running': isModuleRunning(currentModel.filename, mod.name) }"
+                      >
+                        <div class="module-header" @click="toggleModule(mi)">
+                          <span class="module-toggle" :class="{ expanded: expandedModules[mi] }">
+                            <i class="el-icon-arrow-right"></i>
+                          </span>
+                          <div class="module-info">
+                            <div class="module-name-row">
+                              <span class="module-name">{{ mod.name }}</span>
+                              <span class="module-name-cn" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).name }}</span>
+                            </div>
+                            <div class="module-desc" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).description }}</div>
+                          </div>
+                          <span v-if="isModuleRunning(currentModel.filename, mod.name)" class="running-indicator">
+                            <i class="el-icon-video-play"></i> 运行中
+                          </span>
+                          <span class="module-count">{{ mod.params.length }} 参数</span>
+                        </div>
+                        <div class="module-body" :class="{ expanded: expandedModules[mi] }">
+                          <div 
+                            v-for="(param, pi) in mod.params" 
+                            :key="pi" 
+                            class="param-row"
+                            :class="{ 'out-of-range': isOutOfRange(param) }"
+                          >
+                            <div class="param-label-section">
+                              <div class="param-name-row">
+                                <span class="param-key">{{ param.name }}</span>
+                                <span class="param-name-cn" v-if="getParamDef(param.name)">
+                                  {{ getParamDef(param.name).name }}
+                                </span>
+                                <span class="param-unknown" v-else>未定义</span>
+                              </div>
+                              <div class="param-desc" v-if="getParamDef(param.name)">
+                                {{ getParamDef(param.name).description }}
+                              </div>
+                              <div class="param-range" v-if="getParamDef(param.name) && getParamDef(param.name).min !== undefined">
+                                <i class="el-icon-info"></i>
+                                范围: {{ getParamDef(param.name).min }} ~ {{ getParamDef(param.name).max }}
+                                <span v-if="getParamDef(param.name).default !== undefined">
+                                  (默认: {{ getParamDef(param.name).default }})
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div class="param-input-section">
+                              <!-- 单值 -->
+                              <template v-if="param.type === 'single'">
+                                <div class="param-input-row">
+                                  <el-input-number 
+                                    v-if="isNumericParam(param)" 
+                                    :value="param.value" 
+                                    size="mini" 
+                                    controls-position="right"
+                                    :min="getParamDef(param.name) ? getParamDef(param.name).min : -Infinity"
+                                    :max="getParamDef(param.name) ? getParamDef(param.name).max : Infinity"
+                                    :step="getParamDef(param.name) ? (getParamDef(param.name).step || 1) : 1"
+                                    :precision="getPrecision(param.name)"
+                                    @change="updateSingleParam(param, $event)"
+                                  ></el-input-number>
+                                  <el-input v-else v-model="param.value" size="mini" @input="hasModified = true"></el-input>
+                                  <span class="param-unit">{{ getParamDef(param.name) ? getParamDef(param.name).unit : '' }}</span>
+                                  <span class="param-type-badge">{{ param.type }}</span>
+                                </div>
+                                <div class="range-warning" v-if="isOutOfRange(param)">
+                                  <i class="el-icon-warning"></i>
+                                  值超出建议范围
+                                </div>
+                              </template>
+                              
+                              <!-- 数组 -->
+                              <template v-else-if="param.type === 'array'">
+                                <div class="array-display">
+                                  <div class="array-header">
+                                    <span class="array-label">数组 [{{ param.value.length }}]</span>
+                                    <el-button type="text" size="mini" icon="el-icon-plus" @click="addArrayItem(param)"></el-button>
+                                  </div>
+                                  <div class="array-items">
+                                    <div v-for="(item, idx) in param.value" :key="idx" class="array-item">
+                                      <span class="array-index">[{{ idx }}]</span>
+                                      <el-input-number 
+                                        v-if="typeof item === 'number'"
+                                        :value="item"
+                                        size="mini"
+                                        controls-position="right"
+                                        @change="updateArrayItem(param, idx, $event)"
+                                      ></el-input-number>
+                                      <el-input 
+                                        v-else 
+                                        :value="item" 
+                                        size="mini"
+                                        @input="updateArrayItemStr(param, idx, $event)"
+                                      ></el-input>
+                                      <el-button type="text" size="mini" icon="el-icon-delete" @click="removeArrayItem(param, idx)"></el-button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                              
+                              <!-- 矩阵 -->
+                              <template v-else-if="param.type === 'matrix'">
+                                <div class="matrix-display">
+                                  <div class="matrix-toolbar">
+                                    <span class="matrix-size">{{ param.value.length }} × {{ param.value[0] ? param.value[0].length : 0 }}</span>
+                                    <el-button type="text" size="mini" icon="el-icon-plus" @click="addMatrixRow(param)">添加行</el-button>
+                                  </div>
+                                  <div class="matrix-table">
+                                    <div class="matrix-header" v-if="getParamDef(param.name) && getParamDef(param.name).columns">
+                                      <span class="matrix-row-index">#</span>
+                                      <span 
+                                        v-for="(col, ci) in getParamDef(param.name).columns" 
+                                        :key="ci" 
+                                        class="matrix-header-cell"
+                                      >{{ col }}</span>
+                                      <span class="matrix-action-cell"></span>
+                                    </div>
+                                    <div v-for="(row, ri) in param.value" :key="ri" class="matrix-row">
+                                      <span class="matrix-row-index">{{ ri }}</span>
+                                      <el-input-number
+                                        v-for="(cell, ci) in row"
+                                        :key="ci"
+                                        :value="cell"
+                                        size="mini"
+                                        controls-position="right"
+                                        class="matrix-cell-input"
+                                        @change="updateMatrixCell(param, ri, ci, $event)"
+                                      ></el-input-number>
+                                      <el-button type="text" size="mini" icon="el-icon-delete" class="matrix-delete-btn" @click="removeMatrixRow(param, ri)"></el-button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div v-else class="empty-state">
+                      <i class="el-icon-warning-outline"></i>
+                      <p>该文件解析失败</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div v-else class="model-editor">
+                  <div class="empty-state" style="height: 100%;">
+                    <i class="el-icon-folder-opened"></i>
+                    <p>请从左侧选择一个模型文件</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 寄存器管理页 -->
+          <div class="page-content" :class="{ active: activePage === 'register' }">
+            <div class="page-header">
+              <h2 class="page-title">寄存器管理</h2>
+              <div class="page-header-actions">
+                <el-input 
+                  v-model="registerSearch" 
+                  placeholder="搜索寄存器..." 
+                  prefix-icon="el-icon-search"
+                  size="mini"
+                  style="width: 200px; margin-right: 10px;"
+                  clearable
+                ></el-input>
+                <el-button size="mini" icon="el-icon-refresh" @click="refreshAllRegisters" :loading="registerLoading">
+                  全部刷新
+                </el-button>
+              </div>
+            </div>
+            <div class="page-body register-page">
+              <!-- 寄存器分类筛选 -->
+              <div class="register-filters">
+                <el-radio-group v-model="registerFilter" size="mini">
+                  <el-radio-button label="all">全部</el-radio-button>
+                  <el-radio-button label="read">只读</el-radio-button>
+                  <el-radio-button label="write">只写</el-radio-button>
+                  <el-radio-button label="readwrite">读写</el-radio-button>
+                </el-radio-group>
+                <el-radio-group v-model="registerTypeFilter" size="mini" style="margin-left: 16px;">
+                  <el-radio-button label="all">所有类型</el-radio-button>
+                  <el-radio-button label="int">数值型</el-radio-button>
+                  <el-radio-button label="string">字符串型</el-radio-button>
+                </el-radio-group>
+              </div>
+              
+              <!-- 寄存器表格 -->
+              <div class="register-table-container">
+                <table class="register-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 200px;">名称</th>
+                      <th style="width: 80px;">类型</th>
+                      <th style="width: 80px;">权限</th>
+                      <th>值</th>
+                      <th style="width: 200px;">描述</th>
+                      <th style="width: 120px;">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="reg in filteredRegisters" :key="reg.address" :class="{ 'reg-modified': reg.modified }">
+                      <td class="reg-name">{{ reg.name }}</td>
+                      <td>
+                        <el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">
+                          {{ reg.type === 'int' ? '数值' : '字符串' }}
+                        </el-tag>
+                      </td>
+                      <td>
+                        <el-tag size="mini" 
+                          :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">
+                          {{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}
+                        </el-tag>
+                      </td>
+                      <td class="reg-value-cell">
+                        <!-- 只读寄存器 -->
+                        <span v-if="reg.access === 'read'" class="reg-value readonly">
+                          {{ reg.value !== null ? reg.value : '--' }}
+                        </span>
+                        <!-- 只写寄存器 -->
+                        <div v-else-if="reg.access === 'write'" class="reg-input-wrap">
+                          <input 
+                            v-if="reg.type === 'int'"
+                            type="number" 
+                            class="reg-input"
+                            v-model.number="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            placeholder="输入值后回车写入"
+                          />
+                          <input 
+                            v-else
+                            type="text" 
+                            class="reg-input"
+                            v-model="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            placeholder="输入后回车写入"
+                          />
+                        </div>
+                        <!-- 读写寄存器 -->
+                        <div v-else class="reg-input-wrap">
+                          <span class="reg-current-value" v-if="reg.value !== null">
+                            当前: {{ reg.value }}
+                          </span>
+                          <input 
+                            v-if="reg.type === 'int'"
+                            type="number" 
+                            class="reg-input"
+                            v-model.number="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            :placeholder="reg.value !== null ? '新值' : '输入值'"
+                          />
+                          <input 
+                            v-else
+                            type="text" 
+                            class="reg-input"
+                            v-model="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            :placeholder="reg.value !== null ? '新值' : '输入值'"
+                          />
+                        </div>
+                      </td>
+                      <td class="reg-desc">{{ reg.description }}</td>
+                      <td class="reg-actions">
+                        <!-- 可读的显示刷新按钮 -->
+                        <el-button 
+                          v-if="reg.access !== 'write'" 
+                          size="mini" 
+                          icon="el-icon-refresh"
+                          :loading="reg.loading"
+                          @click="readRegister(reg)"
+                        >读取</el-button>
+                        <!-- 可写的显示写入按钮 -->
+                        <el-button 
+                          v-if="reg.access !== 'read'" 
+                          size="mini" 
+                          type="primary"
+                          icon="el-icon-upload2"
+                          :disabled="reg.inputValue === '' || reg.inputValue === null"
+                          @click="writeRegister(reg)"
+                        >写入</el-button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;">
+                  <i class="el-icon-folder-opened"></i>
+                  <p>没有匹配的寄存器</p>
+                </div>
+              </div>
+              
+              <!-- 寄存器统计 -->
+              <div class="register-stats">
+                <span>共 {{ registers.length }} 个寄存器</span>
+                <span>|</span>
+                <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span>
+                <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span>
+                <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 参数字典
+    const paramDictionary = {
+      parameters: {
+        "up_limit": {
+          "name": "上限值",
+          "description": "输出信号的上限阈值",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "default": 2200
+        },
+        "down_limit": {
+          "name": "下限值",
+          "description": "输出信号的下限阈值",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 65535,
+          "default": 0
+        },
+        "vout_gain": {
+          "name": "电压输出增益",
+          "description": "输出电压的放大系数",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "default": 1.0
+        },
+        "current_output_gain": {
+          "name": "电流输出增益",
+          "description": "输出电流的放大系数",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 10,
+          "step": 0.1,
+          "default": 1.0
+        },
+        "stuck_mode": {
+          "name": "堵转模式",
+          "description": "电机堵转时的保护阈值",
+          "unit": "ms",
+          "type": "number",
+          "min": 0,
+          "max": 10000,
+          "default": 2000
+        },
+        "matrix1": {
+          "name": "矩阵参数1",
+          "description": "插值查表用的一维数组",
+          "unit": "",
+          "type": "array"
+        },
+        "signal_tailgate_1": {
+          "name": "尾门信号1",
+          "description": "尾门传感器1的使能状态",
+          "unit": "",
+          "type": "boolean",
+          "min": 0,
+          "max": 1,
+          "default": 1
+        },
+        "signal_tailgate_2": {
+          "name": "尾门信号2",
+          "description": "尾门传感器2的使能状态",
+          "unit": "",
+          "type": "boolean",
+          "min": 0,
+          "max": 1,
+          "default": 1
+        },
+        "example_factor": {
+          "name": "示例系数表",
+          "description": "二维插值查表数据",
+          "unit": "",
+          "type": "matrix",
+          "columns": ["Index", "Input", "Output"]
+        },
+        "max_speed": {
+          "name": "最大转速",
+          "description": "电机允许的最大转速",
+          "unit": "RPM",
+          "type": "number",
+          "min": 0,
+          "max": 10000,
+          "default": 3000
+        },
+        "min_speed": {
+          "name": "最小转速",
+          "description": "电机允许的最小转速",
+          "unit": "RPM",
+          "type": "number",
+          "min": 0,
+          "max": 10000,
+          "default": 0
+        },
+        "acceleration": {
+          "name": "加速度",
+          "description": "电机加速时的变化率",
+          "unit": "RPM/s",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "default": 100
+        },
+        "deceleration": {
+          "name": "减速度",
+          "description": "电机减速时的变化率",
+          "unit": "RPM/s",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "default": 150
+        },
+        "pid_kp": {
+          "name": "PID比例系数",
+          "description": "PID控制器的比例增益Kp",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 0.01,
+          "default": 1.0
+        },
+        "pid_ki": {
+          "name": "PID积分系数",
+          "description": "PID控制器的积分增益Ki",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 0.001,
+          "default": 0.1
+        },
+        "pid_kd": {
+          "name": "PID微分系数",
+          "description": "PID控制器的微分增益Kd",
+          "unit": "",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "step": 0.001,
+          "default": 0.01
+        },
+        "brake_force": {
+          "name": "制动力",
+          "description": "制动器施加的力度百分比",
+          "unit": "%",
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 80
+        },
+        "release_delay": {
+          "name": "释放延迟",
+          "description": "制动器释放前的等待时间",
+          "unit": "ms",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "default": 50
+        }
+      },
+      modules: {
+        "WINDOW_R": {
+          "name": "右车窗",
+          "description": "右侧车窗电机控制模块"
+        },
+        "WINDOW_L": {
+          "name": "左车窗",
+          "description": "左侧车窗电机控制模块"
+        },
+        "TAIL_GATE_LOCK": {
+          "name": "尾门锁",
+          "description": "尾门锁控制模块"
+        },
+        "MOTOR_CTRL": {
+          "name": "电机控制",
+          "description": "通用电机控制模块"
+        },
+        "BRAKE_CTRL": {
+          "name": "制动控制",
+          "description": "制动系统控制模块"
+        }
+      }
+    };
+
+    // ============================================================
+    // WebSocket 通信类
+    // ============================================================
+    class WSClient {
+      constructor(url = 'ws://localhost:3000/ws') {
+        this.url = url;
+        this.ws = null;
+        this.connected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.reconnectInterval = 3000;
+        this.messageId = 0;
+        this.pendingRequests = new Map();
+        this.listeners = new Map();
+        this.requestTimeout = 10000;
+      }
+
+      /**
+       * 连接WebSocket服务器
+       */
+      connect() {
+        return new Promise((resolve, reject) => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            resolve();
+            return;
+          }
+
+          this.ws = new WebSocket(this.url);
+
+          this.ws.onopen = () => {
+            console.log('[WS] 连接成功');
+            this.connected = true;
+            this.reconnectAttempts = 0;
+            this.emit('connected');
+            resolve();
+          };
+
+          this.ws.onclose = (event) => {
+            console.log('[WS] 连接关闭', event.code, event.reason);
+            this.connected = false;
+            this.emit('disconnected');
+            this.tryReconnect();
+          };
+
+          this.ws.onerror = (error) => {
+            console.error('[WS] 连接错误', error);
+            this.emit('error', error);
+            reject(error);
+          };
+
+          this.ws.onmessage = (event) => {
+            this.handleMessage(event.data);
+          };
+        });
+      }
+
+      /**
+       * 断开连接
+       */
+      disconnect() {
+        if (this.ws) {
+          this.ws.close();
+          this.ws = null;
+        }
+        this.connected = false;
+      }
+
+      /**
+       * 尝试重连
+       */
+      tryReconnect() {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.log('[WS] 达到最大重连次数，停止重连');
+          this.emit('reconnectFailed');
+          return;
+        }
+
+        this.reconnectAttempts++;
+        console.log(`[WS] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+        
+        setTimeout(() => {
+          this.connect().catch(() => {});
+        }, this.reconnectInterval);
+      }
+
+      /**
+       * 处理收到的消息
+       */
+      handleMessage(data) {
+        try {
+          const message = JSON.parse(data);
+          
+          // 处理响应消息
+          if (message.id && this.pendingRequests.has(message.id)) {
+            const { resolve, reject, timer } = this.pendingRequests.get(message.id);
+            clearTimeout(timer);
+            this.pendingRequests.delete(message.id);
+            
+            if (message.success === false) {
+              reject(new Error(message.error || '请求失败'));
+            } else {
+              resolve(message);
+            }
+            return;
+          }
+
+          // 处理推送消息
+          if (message.type) {
+            this.emit(message.type, message.data);
+          }
+        } catch (err) {
+          console.error('[WS] 消息解析失败', err);
+        }
+      }
+
+      /**
+       * 发送请求并等待响应
+       * @param {string} action - 操作类型
+       * @param {object} params - 参数
+       * @returns {Promise<object>} - 响应数据
+       */
+      request(action, params = {}) {
+        return new Promise((resolve, reject) => {
+          if (!this.connected) {
+            reject(new Error('WebSocket 未连接'));
+            return;
+          }
+
+          const id = ++this.messageId;
+          const message = { id, action, params };
+
+          // 设置超时
+          const timer = setTimeout(() => {
+            this.pendingRequests.delete(id);
+            reject(new Error('请求超时'));
+          }, this.requestTimeout);
+
+          this.pendingRequests.set(id, { resolve, reject, timer });
+
+          console.log('[WS] 发送请求:', action, params);
+          this.ws.send(JSON.stringify(message));
+        });
+      }
+
+      /**
+       * 发送消息（不等待响应）
+       */
+      send(action, params = {}) {
+        if (!this.connected) {
+          console.warn('[WS] 未连接，无法发送');
+          return false;
+        }
+        this.ws.send(JSON.stringify({ action, params }));
+        return true;
+      }
+
+      /**
+       * 添加事件监听
+       */
+      on(event, callback) {
+        if (!this.listeners.has(event)) {
+          this.listeners.set(event, []);
+        }
+        this.listeners.get(event).push(callback);
+      }
+
+      /**
+       * 移除事件监听
+       */
+      off(event, callback) {
+        if (this.listeners.has(event)) {
+          const list = this.listeners.get(event);
+          const idx = list.indexOf(callback);
+          if (idx !== -1) list.splice(idx, 1);
+        }
+      }
+
+      /**
+       * 触发事件
+       */
+      emit(event, data) {
+        if (this.listeners.has(event)) {
+          this.listeners.get(event).forEach(cb => cb(data));
+        }
+      }
+
+      // ============================================================
+      // API 方法封装
+      // ============================================================
+
+      // --- 设备接口 ---
+      
+      /**
+       * 连接设备
+       * @param {string} ip - 设备IP
+       * @param {number} port - 端口
+       */
+      deviceConnect(ip, port) {
+        return this.request('device.connect', { ip, port });
+      }
+
+      /**
+       * 断开设备
+       */
+      deviceDisconnect() {
+        return this.request('device.disconnect');
+      }
+
+      /**
+       * 获取设备状态
+       */
+      getDeviceStatus() {
+        return this.request('device.status');
+      }
+
+      /**
+       * 上传文件到设备
+       */
+      uploadToDevice(filename, content) {
+        return this.request('device.upload', { filename, content });
+      }
+
+      /**
+       * 从设备下载文件
+       */
+      downloadFromDevice(filename) {
+        return this.request('device.download', { filename });
+      }
+
+      /**
+       * 获取设备文件列表
+       */
+      getDeviceFiles() {
+        return this.request('device.files');
+      }
+
+      /**
+       * 应用参数到设备
+       */
+      applyParams(moduleName, params) {
+        return this.request('device.apply', { module_name: moduleName, params });
+      }
+
+      // --- 寄存器接口 ---
+
+      /**
+       * 读取单个寄存器
+       */
+      readRegister(address) {
+        return this.request('register.read', { address });
+      }
+
+      /**
+       * 写入单个寄存器
+       */
+      writeRegister(address, value) {
+        return this.request('register.write', { address, value });
+      }
+
+      /**
+       * 读取所有寄存器
+       */
+      readAllRegisters() {
+        return this.request('register.readAll');
+      }
+
+      // --- 文件接口 ---
+
+      /**
+       * 保存文件到本地
+       */
+      saveFile(deviceSN, filename, content) {
+        return this.request('file.save', { device_sn: deviceSN, filename, content });
+      }
+
+      /**
+       * 另存为
+       */
+      saveFileAs(deviceSN, filename, content) {
+        return this.request('file.saveAs', { device_sn: deviceSN, filename, content });
+      }
+
+      /**
+       * 读取本地文件
+       */
+      readFile(deviceSN, filename) {
+        return this.request('file.read', { device_sn: deviceSN, filename });
+      }
+
+      /**
+       * 获取本地文件列表
+       */
+      getFileList(deviceSN) {
+        return this.request('file.list', { device_sn: deviceSN });
+      }
+
+      // --- 云端接口 ---
+
+      /**
+       * 上传到云端
+       */
+      uploadToCloud(deviceSN, filename, content, metadata) {
+        return this.request('cloud.upload', { device_sn: deviceSN, filename, content, metadata });
+      }
+
+      /**
+       * 从云端下载
+       */
+      downloadFromCloud(deviceSN, filename, version) {
+        return this.request('cloud.download', { device_sn: deviceSN, filename, version });
+      }
+
+      /**
+       * 获取云端文件列表
+       */
+      getCloudFileList(deviceSN, projectId) {
+        return this.request('cloud.list', { device_sn: deviceSN, project_id: projectId });
+      }
+
+      // --- 模型文件接口 ---
+
+      /**
+       * 获取模型文件列表
+       * @param {string} deviceSN - 设备序列号
+       */
+      getModelList(deviceSN) {
+        return this.request('model.list', { device_sn: deviceSN });
+      }
+
+      /**
+       * 获取模型文件内容
+       * @param {string} deviceSN - 设备序列号
+       * @param {string} filename - 文件名
+       */
+      getModelContent(deviceSN, filename) {
+        return this.request('model.get', { device_sn: deviceSN, filename });
+      }
+    }
+
+    // 创建全局 WebSocket 客户端实例
+    const wsClient = new WSClient('ws://localhost:3000/ws');
+
+    // Bin文件解析器
+    class BinParser {
+      constructor() { this.errors = []; this.warnings = []; }
+
+      parse(content, filename = 'unknown') {
+        this.errors = []; this.warnings = [];
+        const result = { success: true, filename, modules: [], errors: [], warnings: [], raw: content };
+
+        if (!content || typeof content !== 'string') {
+          this.addError(0, '文件内容为空');
+          return this.buildResult(result);
+        }
+
+        const lines = content.split(/\r?\n/);
+        let currentModule = null;
+        let pendingMultilineParam = null;
+        let multilineData = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const lineNum = i + 1;
+          const rawLine = lines[i];
+          const line = rawLine.trim();
+
+          if (pendingMultilineParam !== null) {
+            if (rawLine.startsWith('    ') || rawLine.startsWith('\t')) {
+              const rowData = line.trim().split(/\s+/).map(v => this.parseValue(v));
+              if (rowData.length > 0) multilineData.push(rowData);
+              continue;
+            } else {
+              if (currentModule && pendingMultilineParam) {
+                currentModule.params.push({
+                  name: pendingMultilineParam.name, value: multilineData,
+                  type: 'matrix', lineNum: pendingMultilineParam.lineNum
+                });
+              }
+              pendingMultilineParam = null; multilineData = [];
+            }
+          }
+
+          if (line === '' || line.startsWith('#')) continue;
+
+          if (line.includes(':')) {
+            const colonIndex = line.indexOf(':');
+            const paramName = line.substring(0, colonIndex).trim();
+            const paramValue = line.substring(colonIndex + 1).trim();
+
+            if (!paramName) { this.addError(lineNum, '参数名不能为空'); continue; }
+            if (!currentModule) { this.addError(lineNum, `参数 "${paramName}" 没有所属模块`); continue; }
+
+            if (paramValue === '') {
+              pendingMultilineParam = { name: paramName, lineNum: lineNum };
+              multilineData = [];
+            } else if (paramValue.includes(' ')) {
+              const values = paramValue.trim().split(/\s+/).map(v => this.parseValue(v));
+              currentModule.params.push({ name: paramName, value: values, type: 'array', lineNum });
+            } else {
+              const value = this.parseValue(paramValue);
+              currentModule.params.push({ name: paramName, value: value, type: 'single', lineNum });
+            }
+          } else {
+            currentModule = { name: line, params: [], lineNum };
+            result.modules.push(currentModule);
+          }
+        }
+
+        if (pendingMultilineParam !== null && currentModule) {
+          currentModule.params.push({
+            name: pendingMultilineParam.name, value: multilineData,
+            type: 'matrix', lineNum: pendingMultilineParam.lineNum || 0
+          });
+        }
+
+        if (result.modules.length === 0) this.addError(0, '没有找到任何模块');
+        return this.buildResult(result);
+      }
+
+      parseValue(str) {
+        const trimmed = str.trim();
+        if (/^-?\d+$/.test(trimmed)) return parseInt(trimmed, 10);
+        if (/^-?\d+\.?\d*$/.test(trimmed) || /^-?\d*\.\d+$/.test(trimmed)) return parseFloat(trimmed);
+        return trimmed;
+      }
+
+      addError(lineNum, message) { this.errors.push({ lineNum, message }); }
+      buildResult(result) {
+        result.errors = this.errors; result.warnings = this.warnings;
+        result.success = this.errors.length === 0;
+        return result;
+      }
+    }
+
+    // 示例文件
+    const sampleFiles = {
+      'example.bin': `#这是一个模型文件
+#后车窗
+WINDOW_R
+up_limit:2200
+down_limit:0
+vout_gain:1.5
+current_output_gain:0.5
+stuck_mode:2000
+matrix1:3 4 5
+
+#尾门锁
+TAIL_GATE_LOCK
+signal_tailgate_1:1
+signal_tailgate_2:1
+vout_gain:1.2
+current_output_gain:0.3
+example_factor:
+    0 0 0
+    1 2.3 4.51
+    2 3.4 6.66`,
+
+      'motor_control.bin': `#电机控制模型
+MOTOR_CTRL
+max_speed:3000
+min_speed:0
+acceleration:100
+deceleration:150
+pid_kp:1.5
+pid_ki:0.2
+pid_kd:0.05
+
+BRAKE_CTRL
+brake_force:80
+release_delay:50`,
+
+      'test_out_of_range.bin': `#范围测试
+WINDOW_R
+up_limit:99999
+vout_gain:15.5
+current_output_gain:0.5`
+    };
+
+    new Vue({
+      el: '#app',
+      data: {
+        wsConnected: false,        // WebSocket连接状态
+        deviceConnected: true,
+        deviceSN: 'EL5000-2024-00128',
+        // 预览：实验室/机箱/设备（静态数据，仅用于看样式）
+        locationList: ['上海实验室01', '广州实验室01'],
+        selectedLocation: '上海实验室01',
+        labViewAll: [
+          {
+            labKey: '上海实验室01',
+            cabinets: [
+              {
+                ip: '192.168.1.10',
+                devices: [
+                  { loader_num: 0, connect: false, running: false, interrupt: false, high_temp_alarm: false, running_model: '' },
+                  { loader_num: 1, connect: true,  running: false, interrupt: false, high_temp_alarm: false, running_model: '' },
+                  { loader_num: 2, connect: true,  running: true,  interrupt: false, high_temp_alarm: false, running_model: 'Window_Left' },
+                  { loader_num: 3, connect: true,  running: false, interrupt: true,  high_temp_alarm: false, running_model: '' },
+                  { loader_num: 4, connect: true,  running: false, interrupt: false, high_temp_alarm: true,  running_model: '' },
+                  { loader_num: 5, connect: true,  running: false, interrupt: false, high_temp_alarm: false, running_model: 'Idle' }
+                ]
+              }
+            ]
+          },
+          {
+            labKey: '广州实验室01',
+            cabinets: [
+              {
+                ip: '192.168.2.20',
+                devices: new Array(6).fill(null).map((_, i) => ({ loader_num: i, connect: i % 2 === 0, running: false, interrupt: false, high_temp_alarm: false, running_model: '' }))
+              }
+            ]
+          }
+        ],
+        selectedDeviceKey: '',
+        activeTool: 'model',
+        activePage: 'info',
+        activeModelIndex: 0,
+        hasModified: false,
+        showRaw: false,
+        expandedModules: {},
+        models: [],
+        isModelRunning: true,
+        runningFile: 'example.bin',
+        runningModule: 'WINDOW_R',
+        // 设备信息（从接口获取）
+        deviceInfo: {
+          sn: '',
+          hardwareVersion: '',
+          softwareVersion: '',
+          runTime: ''
+        },
+        // 实时数据（从接口获取）
+        realtimeData: {
+          current: 0,
+          voltage: 0,
+          power: 0,
+          temperature: 0
+        },
+        // 寄存器相关
+        registerSearch: '',
+        registerFilter: 'all',
+        registerTypeFilter: 'all',
+        registerLoading: false,
+        registers: [
+          { address: 0x0000, name: 'DEVICE_ID', type: 'int', access: 'read', value: 5000, inputValue: null, description: '设备ID', loading: false, modified: false },
+          { address: 0x0001, name: 'FIRMWARE_VER', type: 'string', access: 'read', value: 'v2.1.0', inputValue: null, description: '固件版本', loading: false, modified: false },
+          { address: 0x0002, name: 'HARDWARE_VER', type: 'string', access: 'read', value: 'Rev.C', inputValue: null, description: '硬件版本', loading: false, modified: false },
+          { address: 0x0010, name: 'RUN_STATUS', type: 'int', access: 'read', value: 1, inputValue: null, description: '运行状态 (0:停止 1:运行)', loading: false, modified: false },
+          { address: 0x0011, name: 'ERROR_CODE', type: 'int', access: 'read', value: 0, inputValue: null, description: '错误码', loading: false, modified: false },
+          { address: 0x0020, name: 'CURRENT_SETPOINT', type: 'int', access: 'readwrite', value: 5000, inputValue: null, description: '电流设定值 (mA)', loading: false, modified: false },
+          { address: 0x0021, name: 'VOLTAGE_LIMIT', type: 'int', access: 'readwrite', value: 38000, inputValue: null, description: '电压限制 (mV)', loading: false, modified: false },
+          { address: 0x0022, name: 'POWER_LIMIT', type: 'int', access: 'readwrite', value: 50000, inputValue: null, description: '功率限制 (W)', loading: false, modified: false },
+          { address: 0x0030, name: 'MODEL_NAME', type: 'string', access: 'readwrite', value: 'example', inputValue: null, description: '当前模型名称', loading: false, modified: false },
+          { address: 0x0031, name: 'MODULE_NAME', type: 'string', access: 'readwrite', value: 'WINDOW_R', inputValue: null, description: '当前模块名称', loading: false, modified: false },
+          { address: 0x0040, name: 'CTRL_START', type: 'int', access: 'write', value: null, inputValue: null, description: '写1启动模型', loading: false, modified: false },
+          { address: 0x0041, name: 'CTRL_STOP', type: 'int', access: 'write', value: null, inputValue: null, description: '写1停止模型', loading: false, modified: false },
+          { address: 0x0042, name: 'CTRL_RESET', type: 'int', access: 'write', value: null, inputValue: null, description: '写1复位设备', loading: false, modified: false },
+          { address: 0x0050, name: 'SAMPLE_RATE', type: 'int', access: 'readwrite', value: 100000, inputValue: null, description: '采样率 (Hz)', loading: false, modified: false },
+          { address: 0x0051, name: 'OUTPUT_MODE', type: 'int', access: 'readwrite', value: 0, inputValue: null, description: '输出模式 (0:CC 1:CV 2:CP)', loading: false, modified: false },
+          { address: 0x0060, name: 'TEMP_CURRENT', type: 'int', access: 'read', value: 45, inputValue: null, description: '当前温度 (°C)', loading: false, modified: false },
+          { address: 0x0061, name: 'TEMP_LIMIT', type: 'int', access: 'readwrite', value: 80, inputValue: null, description: '温度限制 (°C)', loading: false, modified: false },
+          { address: 0x0070, name: 'SERIAL_NUMBER', type: 'string', access: 'read', value: 'EL5000-2024-00128', inputValue: null, description: '设备序列号', loading: false, modified: false },
+          { address: 0x0080, name: 'USER_DATA', type: 'string', access: 'write', value: null, inputValue: null, description: '用户自定义数据', loading: false, modified: false },
+        ]
+      },
+      computed: {
+        currentModel() { return this.models[this.activeModelIndex] || null; },
+        labView() {
+          if (!this.selectedLocation) return this.labViewAll;
+          return this.labViewAll.filter(l => l.labKey === this.selectedLocation);
+        },
+        canApply() {
+          return this.deviceConnected && this.isModelRunning && 
+                 this.currentModel && this.currentModel.success &&
+                 this.isFileRunning(this.currentModel.filename);
+        },
+        filteredRegisters() {
+          return this.registers.filter(reg => {
+            // 搜索过滤
+            if (this.registerSearch) {
+              const search = this.registerSearch.toLowerCase();
+              const nameMatch = reg.name.toLowerCase().includes(search);
+              const descMatch = reg.description.toLowerCase().includes(search);
+              const addrMatch = ('0x' + reg.address.toString(16)).toLowerCase().includes(search);
+              if (!nameMatch && !descMatch && !addrMatch) return false;
+            }
+            // 权限过滤
+            if (this.registerFilter !== 'all' && reg.access !== this.registerFilter) return false;
+            // 类型过滤
+            if (this.registerTypeFilter !== 'all' && reg.type !== this.registerTypeFilter) return false;
+            return true;
+          });
+        }
+      },
+      methods: {
+        toBool(v) {
+          if (v === true) return true;
+          if (v === false) return false;
+          const s = String(v).toLowerCase().trim();
+          return s === 'true' || s === '1' || s === 'yes' || s === 'y';
+        },
+        deviceLedClass(dev) {
+          const connected = dev && this.toBool(dev.connect);
+          if (!connected) return '';
+          const abnormal = this.toBool(dev.interrupt) || this.toBool(dev.high_temp_alarm) || this.toBool(dev.busy);
+          if (abnormal) return 'alarm';
+          const running = this.toBool(dev.running);
+          if (running) return 'running';
+          return 'connected';
+        },
+        getDeviceKey(dev, cab) {
+          const ip = cab && cab.ip ? String(cab.ip) : 'unknown';
+          return `${ip}#${Number(dev && dev.loader_num)}`;
+        },
+        isSelectedDevice(dev, cab) {
+          return this.selectedDeviceKey && this.selectedDeviceKey === this.getDeviceKey(dev, cab);
+        },
+        selectDevice(dev, cab) {
+          this.selectedDeviceKey = this.getDeviceKey(dev, cab);
+        },
+        /**
+         * 加载模型文件列表
+         * 【接口】WebSocket: model.list
+         */
+        async parseAllFiles() {
+          const parser = new BinParser();
+          
+          try {
+            if (this.wsConnected) {
+              // 从后端获取模型文件列表
+              const listData = await wsClient.getModelList(this.deviceSN);
+              if (listData.success && listData.files && listData.files.length > 0) {
+                // 逐个获取文件内容并解析
+                this.models = [];
+                for (const file of listData.files) {
+                  try {
+                    const contentData = await wsClient.getModelContent(this.deviceSN, file.filename);
+                    if (contentData.success && contentData.content) {
+                      this.models.push(parser.parse(contentData.content, file.filename));
+                    }
+                  } catch (err) {
+                    console.error(`加载文件 ${file.filename} 失败:`, err);
+                  }
+                }
+                console.log('[WS] 从后端加载了', this.models.length, '个模型文件');
+              } else {
+                // 后端没有文件，使用本地示例
+                this.loadSampleFiles(parser);
+              }
+            } else {
+              // 模拟模式：使用本地示例文件
+              this.loadSampleFiles(parser);
+            }
+          } catch (err) {
+            console.error('加载模型列表失败:', err);
+            // 出错时使用本地示例
+            this.loadSampleFiles(parser);
+          }
+          
+          this.activeModelIndex = 0;
+          this.expandedModules = { 0: true, 1: true };
+        },
+        
+        /**
+         * 加载本地示例文件（模拟模式）
+         */
+        loadSampleFiles(parser) {
+          this.models = Object.keys(sampleFiles).map(filename => parser.parse(sampleFiles[filename], filename));
+          console.log('[模拟] 使用本地示例文件');
+        },
+        selectModel(index) {
+          this.activeModelIndex = index;
+          this.showRaw = false;
+          this.hasModified = false;
+          if (this.currentModel && this.isFileRunning(this.currentModel.filename)) {
+            const runningModuleIndex = this.currentModel.modules.findIndex(m => m.name === this.runningModule);
+            if (runningModuleIndex !== -1) this.expandedModules = { [runningModuleIndex]: true };
+          } else {
+            this.expandedModules = { 0: true };
+          }
+        },
+        toggleModule(index) { this.$set(this.expandedModules, index, !this.expandedModules[index]); },
+        updateArrayParam(mod, param, value) {
+          param.value = value.trim().split(/\s+/).map(v => {
+            const num = parseFloat(v);
+            return isNaN(num) ? v : num;
+          });
+          this.hasModified = true;
+        },
+        toggleConnect() {
+          this.deviceConnected = !this.deviceConnected;
+          if (!this.deviceConnected) this.isModelRunning = false;
+        },
+        isFileRunning(filename) { return this.isModelRunning && this.runningFile === filename; },
+        isModuleRunning(filename, moduleName) { return this.isFileRunning(filename) && this.runningModule === moduleName; },
+        
+        // 参数字典相关方法
+        getParamDef(paramName) { return paramDictionary.parameters[paramName]; },
+        getModuleDef(moduleName) { return paramDictionary.modules[moduleName]; },
+        getModuleDisplayName(moduleName) {
+          const def = this.getModuleDef(moduleName);
+          return def ? `${def.name} (${moduleName})` : moduleName;
+        },
+        getPrecision(paramName) {
+          const def = this.getParamDef(paramName);
+          if (!def || !def.step) return 2;
+          const str = def.step.toString();
+          const decimal = str.indexOf('.');
+          return decimal === -1 ? 0 : str.length - decimal - 1;
+        },
+        isOutOfRange(param) {
+          const def = this.getParamDef(param.name);
+          if (!def || def.min === undefined || param.type !== 'single') return false;
+          return param.value < def.min || param.value > def.max;
+        },
+        isNumericParam(param) {
+          return typeof param.value === 'number' || !isNaN(parseFloat(param.value));
+        },
+        
+        // 单值参数更新（修复删除后无法调节的问题）
+        updateSingleParam(param, value) {
+          // 当值为 null 或 undefined 时，使用默认值或0
+          if (value === null || value === undefined || isNaN(value)) {
+            const def = this.getParamDef(param.name);
+            param.value = def && def.default !== undefined ? def.default : 0;
+          } else {
+            param.value = value;
+          }
+          this.hasModified = true;
+        },
+        
+        // 数组操作方法
+        addArrayItem(param) {
+          const lastValue = param.value.length > 0 ? param.value[param.value.length - 1] : 0;
+          param.value.push(typeof lastValue === 'number' ? 0 : '');
+          this.hasModified = true;
+        },
+        removeArrayItem(param, index) {
+          param.value.splice(index, 1);
+          this.hasModified = true;
+        },
+        updateArrayItem(param, index, value) {
+          if (value === null || value === undefined || isNaN(value)) {
+            param.value[index] = 0;
+          } else {
+            param.value[index] = value;
+          }
+          this.hasModified = true;
+        },
+        updateArrayItemStr(param, index, value) {
+          param.value[index] = value;
+          this.hasModified = true;
+        },
+        
+        // 矩阵操作方法
+        addMatrixRow(param) {
+          if (param.value.length > 0) {
+            const cols = param.value[0].length;
+            param.value.push(new Array(cols).fill(0));
+          } else {
+            param.value.push([0, 0, 0]);
+          }
+          this.hasModified = true;
+        },
+        removeMatrixRow(param, rowIndex) {
+          if (param.value.length > 1) {
+            param.value.splice(rowIndex, 1);
+            this.hasModified = true;
+          } else {
+            this.$message.warning('至少保留一行数据');
+          }
+        },
+        updateMatrixCell(param, rowIndex, colIndex, value) {
+          if (value === null || value === undefined || isNaN(value)) {
+            param.value[rowIndex][colIndex] = 0;
+          } else {
+            param.value[rowIndex][colIndex] = value;
+          }
+          this.hasModified = true;
+        },
+        
+        // ============================================================
+        // API 接口调用方法
+        // 【说明】以下方法需要对接后端 Python 接口
+        // ============================================================
+        
+        /**
+         * 保存文件到本地
+         * 【接口】WebSocket: file.save
+         */
+        async handleSave() {
+          if (!this.currentModel) return;
+          
+          try {
+            const content = this.generateBinContent();
+            if (this.wsConnected) {
+              await wsClient.saveFile(this.deviceSN, this.currentModel.filename, content);
+              this.$message.success('文件已保存');
+            } else {
+              console.log('[模拟] 保存文件:', this.currentModel.filename);
+              this.$message.success('文件已保存 (模拟)');
+            }
+            this.hasModified = false;
+          } catch (err) {
+            this.$message.error(`保存失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 另存为新文件
+         * 【接口】WebSocket: file.saveAs
+         */
+        async handleSaveAs() {
+          try {
+            const { value } = await this.$prompt('请输入新文件名', '另存为', {
+              confirmButtonText: '保存',
+              cancelButtonText: '取消',
+              inputValue: this.currentModel.filename.replace('.bin', '_copy.bin'),
+              inputPattern: /^[\w\-\.]+\.bin$/,
+              inputErrorMessage: '文件名格式不正确，需以.bin结尾'
+            });
+            
+            const content = this.generateBinContent();
+            if (this.wsConnected) {
+              await wsClient.saveFileAs(this.deviceSN, value, content);
+              this.$message.success(`文件已另存为 ${value}`);
+            } else {
+              console.log('[模拟] 另存为:', value);
+              this.$message.success(`文件已另存为 ${value} (模拟)`);
+            }
+          } catch {
+            // 用户取消
+          }
+        },
+        
+        /**
+         * 应用参数到设备
+         * 【接口】WebSocket: device.apply
+         */
+        async handleApply() {
+          if (!this.canApply) return;
+          
+          try {
+            if (this.wsConnected) {
+              await wsClient.applyParams(this.runningModule, this.getCurrentModuleParams());
+              this.$message.success('参数已应用，设备输出已更新');
+            } else {
+              console.log('[模拟] 应用参数到设备:', this.runningModule);
+              this.$message.success('参数已应用，设备输出已更新 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`应用失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 上传到云端
+         * 【接口】WebSocket: cloud.upload
+         */
+        async handleUploadCloud() {
+          if (!this.currentModel) return;
+          
+          try {
+            const content = this.generateBinContent();
+            if (this.wsConnected) {
+              await wsClient.uploadToCloud(this.deviceSN, this.currentModel.filename, content, {
+                version: '1.0.0',
+                description: '上传自UI编辑器'
+              });
+              this.$message.success('已上传到云端');
+            } else {
+              console.log('[模拟] 上传云端');
+              this.$message.success('已上传到云端 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`上传失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 从云端获取文件列表
+         * 【接口】WebSocket: cloud.list
+         */
+        async handleGetCloudList() {
+          try {
+            if (this.wsConnected) {
+              const data = await wsClient.getCloudFileList(this.deviceSN);
+              console.log('云端文件列表:', data.files);
+              // TODO: 显示文件列表对话框
+              this.$message.success(`获取到 ${data.files.length} 个云端文件`);
+            } else {
+              console.log('[模拟] 获取云端文件列表');
+              this.$message.info('云端文件列表 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`获取失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 导入文件到设备
+         * 【接口】WebSocket: device.upload
+         */
+        async handleUploadDevice() {
+          if (!this.currentModel) return;
+          
+          try {
+            const content = this.generateBinContent();
+            if (this.wsConnected) {
+              await wsClient.uploadToDevice(this.currentModel.filename, content);
+              this.$message.success('已导入到设备');
+            } else {
+              console.log('[模拟] 导入设备');
+              this.$message.success('已导入到设备 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`导入失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 从设备获取文件
+         * 【接口】WebSocket: device.download
+         */
+        async handleDownloadDevice() {
+          try {
+            if (this.wsConnected) {
+              const data = await wsClient.downloadFromDevice(this.runningFile);
+              console.log('从设备获取的内容:', data.content);
+              // TODO: 解析并加载内容
+              this.$message.success('已从设备获取文件');
+            } else {
+              console.log('[模拟] 从设备获取');
+              this.$message.success('已从设备获取文件 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`获取失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 刷新设备信息
+         * 【接口】WebSocket: device.status
+         */
+        async refreshDeviceInfo() {
+          try {
+            if (this.wsConnected) {
+              // 获取设备基本信息
+              const infoData = await wsClient.request('device.info');
+              if (infoData.success) {
+                this.deviceInfo = {
+                  sn: infoData.sn || '',
+                  hardwareVersion: infoData.hardware_version || '',
+                  softwareVersion: infoData.software_version || '',
+                  runTime: infoData.run_time || ''
+                };
+                this.deviceSN = infoData.sn || this.deviceSN;
+              }
+              
+              // 获取实时数据
+              const realtimeResult = await wsClient.request('device.realtime');
+              if (realtimeResult.success) {
+                this.realtimeData = {
+                  current: realtimeResult.current || 0,
+                  voltage: realtimeResult.voltage || 0,
+                  power: realtimeResult.power || 0,
+                  temperature: realtimeResult.temperature || 0
+                };
+              }
+              
+              this.$message.success('设备信息已刷新');
+            } else {
+              // 模拟模式
+              console.log('[模拟] 刷新设备信息');
+              this.deviceInfo = {
+                sn: 'EL5000-2024-00128',
+                hardwareVersion: 'Rev.C',
+                softwareVersion: 'v2.1.0',
+                runTime: '127:45:32'
+              };
+              this.realtimeData = {
+                current: 45 + Math.random() * 10,
+                voltage: 370 + Math.random() * 20,
+                power: 17 + Math.random() * 4,
+                temperature: 43 + Math.random() * 5
+              };
+              this.$message.success('设备信息已刷新 (模拟)');
+            }
+          } catch (err) {
+            console.error('刷新设备信息失败:', err);
+          }
+        },
+        
+        /**
+         * 读取单个寄存器
+         * 【接口】WebSocket: register.read
+         * @param {Object} reg - 寄存器对象
+         */
+        async readRegister(reg) {
+          if (!this.deviceConnected) {
+            this.$message.warning('设备未连接');
+            return;
+          }
+          
+          reg.loading = true;
+          
+          try {
+            if (this.wsConnected) {
+              const data = await wsClient.readRegister(reg.address);
+              reg.value = data.value;
+              this.$message.success(`寄存器 ${reg.name} 读取成功`);
+            } else {
+              // 模拟模式
+              console.log(`[模拟] 读取寄存器 0x${reg.address.toString(16).toUpperCase()}`);
+              await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 200));
+              if (reg.type === 'int') {
+                reg.value = Math.floor(Math.random() * 10000);
+              } else {
+                reg.value = reg.value || 'sample_string';
+              }
+              this.$message.success(`寄存器 ${reg.name} 读取成功 (模拟)`);
+            }
+          } catch (err) {
+            this.$message.error(`读取失败: ${err.message}`);
+          } finally {
+            reg.loading = false;
+          }
+        },
+        
+        /**
+         * 写入单个寄存器
+         * 【接口】WebSocket: register.write
+         * @param {Object} reg - 寄存器对象
+         */
+        async writeRegister(reg) {
+          if (!this.deviceConnected) {
+            this.$message.warning('设备未连接');
+            return;
+          }
+          
+          if (reg.inputValue === null || reg.inputValue === '') {
+            this.$message.warning('请输入要写入的值');
+            return;
+          }
+          
+          const writeValue = reg.inputValue;
+          
+          try {
+            if (this.wsConnected) {
+              await wsClient.writeRegister(reg.address, writeValue);
+            } else {
+              // 模拟模式
+              console.log(`[模拟] 写入寄存器 0x${reg.address.toString(16).toUpperCase()} = ${writeValue}`);
+              await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 100));
+            }
+            
+            // 更新UI状态
+            if (reg.access === 'readwrite') {
+              reg.value = writeValue;
+            }
+            reg.inputValue = null;
+            reg.modified = true;
+            
+            this.$message.success(`寄存器 ${reg.name} 写入成功`);
+            
+            // 3秒后取消高亮
+            setTimeout(() => { reg.modified = false; }, 3000);
+          } catch (err) {
+            this.$message.error(`写入失败: ${err.message}`);
+          }
+        },
+        
+        /**
+         * 刷新所有可读寄存器
+         * 【接口】WebSocket: register.readAll
+         */
+        async refreshAllRegisters() {
+          if (!this.deviceConnected) {
+            this.$message.warning('设备未连接');
+            return;
+          }
+          
+          this.registerLoading = true;
+          const readableRegs = this.registers.filter(r => r.access !== 'write');
+          
+          for (const reg of readableRegs) {
+            reg.loading = true;
+          }
+          
+          try {
+            if (this.wsConnected) {
+              const data = await wsClient.readAllRegisters();
+              data.registers.forEach(item => {
+                const reg = this.registers.find(r => r.address === item.address);
+                if (reg) {
+                  reg.value = item.value;
+                  reg.loading = false;
+                }
+              });
+              this.$message.success('所有寄存器已刷新');
+            } else {
+              // 模拟模式
+              console.log('[模拟] 刷新所有寄存器');
+              await new Promise(resolve => setTimeout(resolve, 500));
+              for (const reg of readableRegs) {
+                if (reg.type === 'int') {
+                  reg.value = Math.floor(Math.random() * 10000);
+                }
+                reg.loading = false;
+              }
+              this.$message.success('所有寄存器已刷新 (模拟)');
+            }
+          } catch (err) {
+            this.$message.error(`刷新失败: ${err.message}`);
+            for (const reg of readableRegs) {
+              reg.loading = false;
+            }
+          } finally {
+            this.registerLoading = false;
+          }
+        },
+        
+        /**
+         * 生成bin文件内容
+         */
+        generateBinContent() {
+          if (!this.currentModel || !this.currentModel.modules) return '';
+          let content = '';
+          for (const mod of this.currentModel.modules) {
+            content += `${mod.name}\n`;
+            for (const param of mod.params) {
+              if (param.type === 'matrix') {
+                content += `${param.name}:\n`;
+                for (const row of param.value) {
+                  content += `    ${row.join(' ')}\n`;
+                }
+              } else if (param.type === 'array') {
+                content += `${param.name}:${param.value.join(' ')}\n`;
+              } else {
+                content += `${param.name}:${param.value}\n`;
+              }
+            }
+            content += '\n';
+          }
+          return content;
+        },
+        
+        // ============================================================
+        // WebSocket 相关方法
+        // ============================================================
+        
+        /**
+         * 初始化 WebSocket 连接
+         */
+        initWebSocket() {
+          const self = this;
+          
+          // 监听连接事件
+          wsClient.on('connected', () => {
+            self.wsConnected = true;
+            self.$message.success('WebSocket 已连接');
+            // 连接后自动获取设备状态
+            self.refreshDeviceInfo();
+          });
+
+          wsClient.on('disconnected', () => {
+            self.wsConnected = false;
+            self.$message.warning('WebSocket 连接已断开');
+          });
+
+          wsClient.on('reconnectFailed', () => {
+            self.$message.error('WebSocket 重连失败，请检查服务器');
+          });
+
+          wsClient.on('error', (err) => {
+            console.error('[WS] 错误:', err);
+          });
+
+          // 监听设备状态推送
+          wsClient.on('device.statusUpdate', (data) => {
+            self.handleDeviceStatusUpdate(data);
+          });
+
+          // 监听寄存器变化推送
+          wsClient.on('register.changed', (data) => {
+            self.handleRegisterChanged(data);
+          });
+
+          // 尝试连接（静默失败，因为可能没有服务器）
+          wsClient.connect().catch(err => {
+            console.log('[WS] 初始连接失败，使用模拟模式');
+          });
+        },
+
+        /**
+         * 处理设备状态更新推送
+         */
+        handleDeviceStatusUpdate(data) {
+          if (data.connected !== undefined) this.deviceConnected = data.connected;
+          if (data.running_file) this.runningFile = data.running_file;
+          if (data.running_module) this.runningModule = data.running_module;
+          if (data.current !== undefined) this.realtimeData.current = data.current;
+          if (data.voltage !== undefined) this.realtimeData.voltage = data.voltage;
+          if (data.power !== undefined) this.realtimeData.power = data.power;
+          if (data.temperature !== undefined) this.realtimeData.temperature = data.temperature;
+        },
+
+        /**
+         * 处理寄存器变化推送
+         */
+        handleRegisterChanged(data) {
+          const reg = this.registers.find(r => r.address === data.address);
+          if (reg) {
+            reg.value = data.value;
+            reg.modified = true;
+            setTimeout(() => { reg.modified = false; }, 3000);
+          }
+        },
+
+        /**
+         * 检查WebSocket是否可用，否则使用模拟模式
+         */
+        async wsRequest(action, fallback) {
+          if (this.wsConnected) {
+            try {
+              return await wsClient.request(action.name, action.params);
+            } catch (err) {
+              console.error('[WS] 请求失败:', err);
+              this.$message.error('通信失败: ' + err.message);
+              throw err;
+            }
+          } else {
+            // 模拟模式
+            console.log('[模拟] ' + action.name, action.params);
+            return fallback ? fallback() : { success: true };
+          }
+        }
+      },
+      mounted() {
+        this.parseAllFiles();
+        const runningIndex = this.models.findIndex(m => m.filename === this.runningFile);
+        if (runningIndex !== -1) this.selectModel(runningIndex);
+        
+        // 初始化 WebSocket 连接
+        this.initWebSocket();
+      }
+    });
+  </script>
+</body>
+</html>

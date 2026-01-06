@@ -1,0 +1,5 @@
+WINDOW_R
+up_limit:99999
+vout_gain:8
+current_output_gain:0.5
+

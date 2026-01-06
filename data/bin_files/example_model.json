@@ -1,0 +1,68 @@
+{
+  "header": {
+    "version": 1,
+    "timestamp": 1701676800
+  },
+  "params": {
+    "sample_rate": {
+      "id": 1,
+      "type": "UINT32",
+      "value": 10000,
+      "unit": "Hz",
+      "description": "模型计算采样频率"
+    },
+    "precision": {
+      "id": 2,
+      "type": "STRING",
+      "value": "float32",
+      "unit": "",
+      "description": "浮点计算精度"
+    },
+    "max_current": {
+      "id": 10,
+      "type": "FLOAT32",
+      "value": 100.0,
+      "unit": "A",
+      "description": "负载最大允许电流"
+    },
+    "max_voltage": {
+      "id": 11,
+      "type": "FLOAT32",
+      "value": 600.0,
+      "unit": "V",
+      "description": "负载最大允许电压"
+    },
+    "max_power": {
+      "id": 12,
+      "type": "FLOAT32",
+      "value": 50000.0,
+      "unit": "W",
+      "description": "负载最大允许功率"
+    },
+    "kp": {
+      "id": 20,
+      "type": "FLOAT32",
+      "value": 1.0,
+      "unit": "",
+      "description": "PID比例系数"
+    },
+    "ki": {
+      "id": 21,
+      "type": "FLOAT32",
+      "value": 0.1,
+      "unit": "",
+      "description": "PID积分系数"
+    },
+    "kd": {
+      "id": 22,
+      "type": "FLOAT32",
+      "value": 0.01,
+      "unit": "",
+      "description": "PID微分系数"
+    }
+  }
+}
+
+
+
+
