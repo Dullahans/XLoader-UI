@@ -37,16 +37,16 @@ class WSClient {
         return;
       }
 
-      console.log(`[WS] Connecting: ${this.url}`);
+      console.log(`[WS] 正在连接: ${this.url}`);
       this.ws = new WebSocket(this.url);
 
       this.ws.onopen = () => {
-        console.log('[WS] Connected');
+        console.log('[WS] 连接成功');
         this.connected = true;
         this.reconnectAttempts = 0;
         try {
           // 建链握手
-          this.ws.send('Hello, I am loader');
+          this.ws.send('Hello, I am ui');
         } catch (e) {
           console.warn('[WS] hello handshake failed:', e);
         }
@@ -55,14 +55,14 @@ class WSClient {
       };
 
       this.ws.onclose = (event) => {
-        console.log('[WS] Connection closed', event.code, event.reason);
+        console.log('[WS] 连接关闭', event.code, event.reason);
         this.connected = false;
         this.emit('disconnected');
         this.tryReconnect();
       };
 
       this.ws.onerror = (error) => {
-        console.error('[WS] Connection error', error);
+        console.error('[WS] 连接错误', error);
         this.emit('error', error);
         reject(error);
       };
@@ -89,13 +89,13 @@ class WSClient {
    */
   tryReconnect() {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log('[WS] Max reconnect attempts reached');
+      console.log('[WS] 达到最大重连次数，停止重连');
       this.emit('reconnectFailed');
       return;
     }
 
     this.reconnectAttempts++;
-    console.log(`[WS] Retrying (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+    console.log(`[WS] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
     
     setTimeout(() => {
       this.connect().catch(() => {});
@@ -153,7 +153,7 @@ class WSClient {
         
         const ok = (responseData.success !== false) && (responseData.ok !== false) && (responseData.code === undefined || responseData.code === 0);
         if (!ok && responseData.success === false) {
-          reject(new Error(responseData.error || responseData.msg || responseData.desc || 'Request failed'));
+          reject(new Error(responseData.error || responseData.msg || responseData.desc || '请求失败'));
         } else {
           resolve(responseData);
         }
@@ -173,7 +173,7 @@ class WSClient {
         }
       }
     } catch (err) {
-      console.error('[WS] Message parse failed:', err, 'Raw data:', data);
+      console.error('[WS] 消息解析失败:', err, '原始数据:', data);
     }
   }
 
@@ -183,7 +183,7 @@ class WSClient {
   request(action, params = {}) {
     return new Promise((resolve, reject) => {
       if (!this.connected) {
-        reject(new Error('WebSocket Not Connected'));
+        reject(new Error('WebSocket 未连接'));
         return;
       }
 
@@ -195,12 +195,12 @@ class WSClient {
 
       const timer = setTimeout(() => {
         this.pendingRequests.delete(cmdIdStr);
-        reject(new Error('Request Timeout'));
+        reject(new Error('请求超时'));
       }, this.requestTimeout);
 
       this.pendingRequests.set(cmdIdStr, { resolve, reject, timer });
 
-      console.log('[WS] Request:', action, params, 'cmd_id=', cmd_id);
+      console.log('[WS] 发送请求:', action, params, 'cmd_id=', cmd_id);
       this.ws.send(JSON.stringify(message));
     });
   }
@@ -210,7 +210,7 @@ class WSClient {
    */
   send(action, params = {}) {
     if (!this.connected) {
-      console.warn('[WS] Not connected, cannot send');
+      console.warn('[WS] 未连接，无法发送');
       return false;
     }
     const cmd_id = Date.now() * 1000 + ((++this.messageId) % 1000);
@@ -299,3 +299,4 @@ class WSClient {
 }
 
 export default new WSClient();
+

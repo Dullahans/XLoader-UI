@@ -6,7 +6,7 @@
 
 ### 1.1 连接建立
 - **连接地址**: 通过 `WSClient` 类管理 WebSocket 连接
-- **握手消息**: 连接建立后发送 `'Hello, I am loader'` 字符串
+- **握手消息**: 连接建立后发送 `'Hello, I am ui'` 字符串
 - **Topic**: 所有消息使用 `topic: "LOADER"`
 
 ### 1.2 消息格式
