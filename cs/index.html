@@ -1,4 +1,17 @@
-<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>电子负载上位机</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css"><script src="https://unpkg.com/vue@2.7.14/dist/vue.min.js"></script><script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script><style>:root {
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>电子负载上位机</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/element-ui@2.15.14/lib/theme-chalk/index.css">
+  <script src="https://unpkg.com/vue@2.7.14/dist/vue.min.js"></script>
+  <script src="https://unpkg.com/element-ui@2.15.14/lib/index.js"></script>
+  <style>
+    :root {
       --primary-color: #2563eb;
       --primary-dark: #1d4ed8;
       --primary-light: #3b82f6;
@@ -1644,18 +1657,1233 @@
     .context-menu-item:hover > .context-submenu {
       display: block;
     }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }</style><link href="css/chunk-0e3c8099.d793f7e8.css" rel="prefetch"><link href="css/chunk-297a144e.280b91eb.css" rel="prefetch"><link href="css/chunk-771331e4.3ed62e30.css" rel="prefetch"><link href="css/chunk-7e61c1c0.c7abf9da.css" rel="prefetch"><link href="js/chunk-0e3c8099.ab560fe7.js" rel="prefetch"><link href="js/chunk-297a144e.3f086e74.js" rel="prefetch"><link href="js/chunk-771331e4.8586b449.js" rel="prefetch"><link href="js/chunk-7e61c1c0.6509915c.js" rel="prefetch"><link href="css/app.ad774085.css" rel="preload" as="style"><link href="css/chunk-vendors.d38403b9.css" rel="preload" as="style"><link href="js/app.3152c597.js" rel="preload" as="script"><link href="js/chunk-vendors.83f22ba7.js" rel="preload" as="script"><link href="css/chunk-vendors.d38403b9.css" rel="stylesheet"><link href="css/app.ad774085.css" rel="stylesheet"></head><body><div id="app"><div class="app-layout"><aside class="device-sidebar"><div class="sidebar-header"><span class="sidebar-title">X-Loader 上位机</span><el-tooltip :content="wsConnected ? 'WebSocket已连接' : 'WebSocket未连接'" placement="right"><span class="ws-indicator" :class="{ connected: wsConnected }"></span></el-tooltip></div><div class="sidebar-section"><div class="section-title"><span>实验室</span><el-tag v-if="!isLocationRegistered" size="mini" type="danger" effect="plain" style="font-weight: normal; transform: scale(0.85);">未注册</el-tag></div><div style="display: flex; gap: 6px;"><el-select v-model="selectedLocation" size="mini" placeholder="请选择实验室" style="flex: 1;" @change="onLocationChanged"><el-option v-if="selectedLocation === '未设置' && !isLocationRegistered" key="未设置" label="未设置（请选择实验室）" value="未设置" disabled></el-option><el-option v-for="loc in locationList" :key="loc" :label="loc" :value="loc"></el-option></el-select><el-button size="mini" type="primary" icon="el-icon-check" circle @click="handleSaveLocation" title="保存实验室位置"></el-button></div></div><div class="sidebar-scroll"><div v-if="!hasConnectStatus" class="empty-hint"><i class="el-icon-info"></i><div>暂无状态数据</div><div class="muted">等待 get_connect_status 推送…</div></div><div v-for="lab in labView" :key="lab.labKey" class="lab-block"><div class="lab-header"><span class="lab-name">{{ lab.labKey }}</span> <span class="lab-count">{{ lab.cabinets.length }} 机箱</span></div><div v-for="cab in lab.cabinets" :key="cab.ip" class="cabinet-block"><div class="cabinet-stack"><div class="cabinet-frame"><div class="cabinet-frame-bg"><img src="img/cabinet.png" alt="cabinet"></div><div class="cabinet-row logo"><img class="cabinet-logo" src="img/logo.png" alt="logo"></div><div class="cabinet-row ip"><span class="cabinet-ip-text">IP: {{ cab.ip }}</span></div><div class="cabinet-body"><div class="cabinet-device-grid"><div v-for="dev in cab.devices" :key="dev.loader_num" class="device-item" :class="{ selected: isSelectedDevice(dev), disconnected: !toBool(dev.connect) }" @click="selectDevice(dev)" title="单击选中该设备"><div class="device-pic"><img src="img/device.png" alt="device"> <span class="rgb-dot" :class="deviceLedClass(dev)"></span> <span class="device-index">{{ dev.loader_num + 1 }}</span></div><div class="device-model" :title="dev.loader_name || dev.running_model || ''">{{ dev.loader_name || dev.running_model || '—' }}</div></div></div></div></div></div></div></div></div></aside><div class="main-area"><div class="toolbar"><div class="toolbar-buttons"><button class="tool-btn" @click="openUpgradeDialog"><i class="el-icon-upload"></i>设备升级</button> <button class="tool-btn" @click="openLogDialog"><i class="el-icon-document"></i>日志拉取</button> <button class="tool-btn" @click="openConsoleDrawer"><i class="el-icon-monitor"></i>控制台</button></div></div><div class="content-area"><div class="model-control-bar"><div class="bar-left"><span class="bar-label">模型选择</span><el-cascader v-model="selectedModelPath" :options="modelOptions" :props="{ expandTrigger: 'hover' }" size="mini" clearable placeholder="请选择项目/模型" style="width: 320px;"></el-cascader><el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">刷新</el-button><el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning"><el-radio-button label="model">模型</el-radio-button><el-radio-button label="regen">回灌</el-radio-button></el-radio-group></div><div class="bar-right"><el-button size="mini" type="success" icon="el-icon-video-play" @click="startSelectedModel" :disabled="!canStartSelected">启动</el-button><el-button size="mini" type="danger" icon="el-icon-video-pause" @click="stopSelectedModel" :disabled="!canStopSelected">停止</el-button></div></div><div class="page-tabs"><button class="page-tab" :class="{ active: activePage === 'info' }" @click="activePage = 'info'">设备信息</button> <button class="page-tab" :class="{ active: activePage === 'model' }" @click="activePage = 'model'">参数编辑</button> <button class="page-tab" :class="{ active: activePage === 'register' }" @click="activePage = 'register'">寄存器管理</button></div><el-dialog title="模型管理" :visible.sync="dialogModelVisible" width="520px"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;"><div style="color: var(--text-muted); font-size: 12px;">设备文件根目录下的 project1/project2… 会在这里展示（log 文件夹不展示在模型管理里）。</div><el-button size="mini" icon="el-icon-refresh" @click="loadModelTree" :loading="modelTreeLoading" :disabled="!wsConnected">刷新</el-button></div><el-tree v-if="modelTreeData && modelTreeData.length" :data="modelTreeData" node-key="label" :props="{ label: 'label', children: 'children' }" :default-expand-all="false" accordion></el-tree><div v-else style="color: var(--text-muted); font-size: 12px;">{{ wsConnected ? (modelTreeLoading ? '加载中…' : '暂无项目目录') : 'WebSocket 未连接' }}</div><span slot="footer" class="dialog-footer"><el-button size="mini" @click="dialogModelVisible = false">关闭</el-button></span></el-dialog><el-dialog title="日志拉取" :visible.sync="dialogLogVisible" width="560px"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;"><div style="color: var(--text-muted); font-size: 12px;">设备文件根目录下的 log 文件夹会在这里展示。</div><el-button size="mini" icon="el-icon-refresh" @click="loadLogTree" :loading="logTreeLoading" :disabled="!wsConnected">刷新</el-button></div><el-tree v-if="logTreeData && logTreeData.length" :data="logTreeData" node-key="label" :props="{ label: 'label', children: 'children' }" :default-expand-all="true" accordion @node-click="handleLogNodeClick"></el-tree><div v-else style="color: var(--text-muted); font-size: 12px;">{{ wsConnected ? (logTreeLoading ? '加载中…' : '暂无日志目录/文件') : 'WebSocket 未连接' }}</div><span slot="footer" class="dialog-footer"><el-button size="mini" @click="dialogLogVisible = false">关闭</el-button><el-button size="mini" type="primary" @click="confirmPullLog" :disabled="!selectedLogPath">拉取选中日志</el-button></span></el-dialog><el-dialog title="设备升级（云端/近端）" :visible.sync="dialogUpgradeVisible" width="980px"><div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;"><div style="color: var(--text-muted); font-size: 12px;">当前展示：loader 名称 / SN / 运行状态 / 当前版本（来自 get_connect_status）； 云端版本（需先点击“获取云端版本”）。</div><el-button size="mini" type="primary" icon="el-icon-refresh" @click="checkCloudNewVersion" :loading="otaLoading" :disabled="!wsConnected">获取云端版本</el-button></div><div style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">{{ otaCloudStatusText }}</div><el-table :data="upgradeRows" size="mini" border style="width: 100%;"><el-table-column prop="ip" label="IP" width="140"></el-table-column><el-table-column prop="loader_name" label="Loader名称" width="140"></el-table-column><el-table-column prop="loader_num" label="编号" width="60"></el-table-column><el-table-column prop="sn" label="SN号" width="140"></el-table-column><el-table-column prop="running_text" label="运行状态" width="90"></el-table-column><el-table-column prop="current_version" label="当前版本" width="140"></el-table-column><el-table-column label="云端版本" width="160"><template slot-scope="scope"><span v-if="scope.row.target_version">{{ scope.row.target_version }}</span> <span v-else style="color: var(--text-muted);">{{ otaCloudStatus === 'error' ? '获取失败' : (otaCloudStatus === 'empty' ? '无新版本' : (otaCloudStatus === 'never' ? '未获取' : '—')) }}</span></template></el-table-column><el-table-column label="进度" width="160"><template slot-scope="scope"><el-progress :percentage="Math.round(getOtaProgress(scope.row.ip, scope.row.loader_num))" :status="getOtaProgressStatus(scope.row.ip, scope.row.loader_num)" :stroke-width="10"></el-progress></template></el-table-column><el-table-column label="操作" min-width="220"><template slot-scope="scope"><el-button size="mini" type="success" @click="openLocalUpgrade(scope.row)" :disabled="!wsConnected">近端升级</el-button><el-button size="mini" type="primary" @click="startOta(scope.row.ip, scope.row.loader_num)" :disabled="!wsConnected">远端升级</el-button></template></el-table-column></el-table><span slot="footer" class="dialog-footer"><el-button size="mini" @click="dialogUpgradeVisible = false">关闭</el-button></span></el-dialog><el-dialog title="近端升级（选择 .hex 文件）" :visible.sync="dialogLocalUpgradeVisible" width="560px"><div style="margin-bottom: 15px; font-size: 12px; color: var(--text-muted);">目标设备：{{ localUpgradeTarget.ip }} #{{ localUpgradeTarget.loader_num }}（{{ localUpgradeTarget.loader_name || '' }}）</div><el-tabs v-model="localUpgradeTab" type="border-card"><el-tab-pane label="选择文件" name="file"><div style="margin: 15px 0;"><el-upload action="#" :auto-upload="false" :limit="1" accept=".hex" :on-change="onHexSelected" :on-remove="onHexRemoved" :file-list="hexFileList"><el-button size="small" type="primary" icon="el-icon-folder-opened">从资源管理器选择文件</el-button><div slot="tip" class="el-upload__tip" style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">只允许选择 .hex 后缀文件</div></el-upload><div v-if="selectedHexName" style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">已选择：{{ selectedHexName }}</div></div></el-tab-pane><el-tab-pane label="输入路径" name="path"><div style="margin: 15px 0;"><el-input v-model="localUpgradePath" placeholder="请输入 .hex 文件的绝对路径，例如：D:\workspace\aaa.hex" size="small" style="width: 100%;"><template slot="prepend">文件路径</template></el-input><div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">请输入服务器本地文件的完整路径</div></div></el-tab-pane></el-tabs><span slot="footer" class="dialog-footer"><el-button size="mini" @click="dialogLocalUpgradeVisible = false" :disabled="localUpgradeLoading">取消</el-button><el-button size="mini" type="primary" :disabled="(!selectedHexName && !localUpgradePath) || localUpgradeLoading" :loading="localUpgradeLoading" @click="confirmLocalUpgrade">开始近端升级</el-button></span></el-dialog><el-drawer title="控制台" :visible.sync="drawerConsoleVisible" direction="rtl" size="420px" :modal="false" :wrapper-closable="false" custom-class="non-modal-drawer"><div style="display:flex; flex-direction:column; height: 100%;"><div style="flex:1; overflow:auto; border:1px solid var(--border-color); border-radius:10px; padding:10px; background: var(--bg-white);"><div v-if="!consoleHistory.length" style="color: var(--text-muted); font-size: 12px;">暂无历史记录</div><div v-for="(m, idx) in consoleHistory" :key="idx" style="margin-bottom:8px;"><div style="font-size:11px; color: var(--text-muted);">{{ m.ts }} · {{ m.dir === 'out' ? '发送' : '返回' }}</div><pre style="white-space: pre-wrap; word-break: break-word; background: var(--bg-gray); padding:8px; border-radius:8px; font-family: var(--font-mono); font-size:12px; margin-top:4px;">{{ m.text }}</pre></div></div><div style="margin-top:10px; padding: 10px; background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: 6px;"><div style="display:flex; gap:8px; align-items:center;"><el-input v-model="consoleInput" size="small" placeholder="输入控制台命令，例如 120GET:CCV" style="flex: 1;" @keyup.enter.native="sendConsoleCmd"></el-input><el-button size="small" type="primary" @click="sendConsoleCmd" :disabled="!wsConnected || !consoleInput">发送</el-button></div></div><div style="margin-top:6px; font-size: 12px; color: var(--text-muted);">当前设备：{{ device_id }} #{{ loader_num }}</div></div></el-drawer><el-dialog title="新增寄存器 Sheet" :visible.sync="dialogAddSheetVisible" width="400px"><el-form label-width="80px"><el-form-item label="名称"><el-input v-model="newSheetName" placeholder="例如：关键参数" @keyup.enter.native="confirmAddSheet"></el-input></el-form-item></el-form><div slot="footer" class="dialog-footer"><el-button size="small" @click="dialogAddSheetVisible = false">取消</el-button><el-button size="small" type="primary" @click="confirmAddSheet">确定</el-button></div></el-dialog><div v-if="contextMenuVisible" class="context-menu" :style="{ left: contextMenuPos.x + 'px', top: contextMenuPos.y + 'px' }" @click.stop><div class="context-menu-item">添加到页签 <i class="el-icon-arrow-right"></i><div class="context-submenu"><div v-for="s in registerSheets.filter(x => x.id !== 'root')" :key="s.id" class="context-menu-item" @click="addRegToSheet(contextMenuReg, s.id)">{{ s.name }}</div><div v-if="registerSheets.length <= 1" class="context-menu-item muted">暂无自定义页签</div></div></div><div v-if="activeSheetId !== 'root'" class="context-menu-item danger" @click="removeRegFromCurrentSheet(contextMenuReg)">从当前页签删除</div></div><div class="page-content" :class="{ active: activePage === 'info' }"><div class="page-header"><h2 class="page-title">设备信息</h2><el-button size="mini" icon="el-icon-refresh" @click="refreshDeviceInfo">刷新</el-button></div><div class="page-body"><div class="device-overview-card"><div class="device-photo"><img src="img/device_info.png" alt="设备图片"><div class="device-photo-overlay" v-if="!deviceConnected"><i class="el-icon-warning"></i> <span>设备未连接</span></div></div><div class="device-overview-info"><div class="device-overview-header"><h3 class="device-model-name">{{ currentDeviceName }}</h3><el-tag :type="deviceConnected ? 'success' : 'info'" size="small">{{ deviceConnected ? '在线' : '离线' }}</el-tag></div><div class="device-info-grid"><div class="info-item"><span class="info-label">设备序列号</span> <span class="info-value sn">{{ deviceInfo.sn || '--' }}</span></div><div class="info-item"><span class="info-label">硬件版本</span> <span class="info-value">{{ deviceInfo.hardwareVersion || '--' }}</span></div><div class="info-item"><span class="info-label">软件版本</span> <span class="info-value">{{ deviceInfo.softwareVersion || '--' }}</span></div><div class="info-item"><span class="info-label">运行时间</span> <span class="info-value highlight">{{ deviceInfo.runTime || '--' }}</span></div></div><div class="running-model-info" v-if="deviceConnected && isModelRunning"><div class="running-model-badge"><i class="el-icon-video-play"></i> <span>模型运行中</span></div><div class="running-model-detail"><span class="running-label">文件:</span> <span class="running-value">{{ runningFile }}</span> <span class="running-label">模块:</span> <span class="running-value">{{ getModuleDisplayName(runningModule) }}</span></div></div><div class="running-model-info stopped" v-else-if="deviceConnected"><div class="running-model-badge stopped"><i class="el-icon-video-pause"></i> <span>模型未运行</span></div></div></div></div><div class="spec-section"><h4 class="section-title"><i class="el-icon-data-analysis"></i> 设备规格</h4><div class="spec-grid"><div class="spec-card"><div class="spec-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);"><i class="el-icon-s-data"></i></div><div class="spec-content"><span class="spec-value">{{ currentSpecs.max_current_a }} A</span> <span class="spec-label">最大电流</span></div></div><div class="spec-card"><div class="spec-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);"><i class="el-icon-lightning"></i></div><div class="spec-content"><span class="spec-value">±{{ Math.abs(currentSpecs.max_voltage_v) }} V</span> <span class="spec-label">最大电压</span></div></div><div class="spec-card"><div class="spec-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);"><i class="el-icon-odometer"></i></div><div class="spec-content"><span class="spec-value">{{ currentSpecs.max_power_w }} W</span> <span class="spec-label">最大功率</span></div></div><div class="spec-card"><div class="spec-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--running-color);"><i class="el-icon-time"></i></div><div class="spec-content"><span class="spec-value">{{ currentSpecs.sample_rate_khz }} kHz</span> <span class="spec-label">采样率</span></div></div></div></div><div class="realtime-section" v-if="deviceConnected"><h4 class="section-title"><i class="el-icon-data-line"></i> 实时数据</h4><div class="realtime-grid"><div class="realtime-card"><span class="realtime-value">{{ realtimeData.current.toFixed(1) }}</span> <span class="realtime-unit">A</span> <span class="realtime-label">电流</span><div class="realtime-bar"><div class="realtime-bar-fill" :style="{ width: (realtimeData.current / 100 * 100) + '%' }"></div></div></div><div class="realtime-card"><span class="realtime-value">{{ realtimeData.voltage.toFixed(0) }}</span> <span class="realtime-unit">V</span> <span class="realtime-label">电压</span><div class="realtime-bar"><div class="realtime-bar-fill" :style="{ width: (realtimeData.voltage / 600 * 100) + '%', background: 'var(--success-color)' }"></div></div></div><div class="realtime-card"><span class="realtime-value">{{ realtimeData.power.toFixed(1) }}</span> <span class="realtime-unit">kW</span> <span class="realtime-label">功率</span><div class="realtime-bar"><div class="realtime-bar-fill" :style="{ width: (realtimeData.power / 50 * 100) + '%', background: 'var(--warning-color)' }"></div></div></div><div class="realtime-card"><span class="realtime-value">{{ realtimeData.temperature }}</span> <span class="realtime-unit">°C</span> <span class="realtime-label">温度</span><div class="realtime-bar"><div class="realtime-bar-fill" :style="{ width: (realtimeData.temperature / 80 * 100) + '%', background: realtimeData.temperature > 60 ? 'var(--error-color)' : 'var(--running-color)' }"></div></div></div></div></div></div></div><div class="page-content" :class="{ active: activePage === 'model' }"><div class="page-header"><h2 class="page-title">参数编辑</h2><div class="btn-group"><el-tooltip content="上传当前文件到云端服务器" placement="top"><button class="action-btn" :disabled="!wsConnected || !currentModel || !currentModel.path" @click="handleUploadCloud"><i class="el-icon-upload2"></i>上传云端</button></el-tooltip><el-tooltip content="从云端获取模型文件列表" placement="top"><button class="action-btn" :disabled="!wsConnected" @click="handleDownloadCloudModel"><i class="el-icon-download"></i>云端获取</button></el-tooltip><span class="btn-divider"></span><el-tooltip content="将当前文件导入到设备存储" placement="top"><button class="action-btn" :disabled="!wsConnected" @click="handleLoadModelToDevice"><i class="el-icon-top"></i>导入设备</button></el-tooltip><el-tooltip content="从设备读取模型文件" placement="top"><button class="action-btn" :disabled="!wsConnected" @click="handleGetFileInfo"><i class="el-icon-bottom"></i>设备获取</button></el-tooltip><span class="btn-divider"></span><el-tooltip content="保存到本地文件" placement="top" :open-delay="500"><button class="action-btn primary" :disabled="!currentModel || !hasModified" @click="handleSave"><i class="el-icon-folder-checked"></i>保存</button></el-tooltip><el-tooltip content="另存为新文件" placement="top" :open-delay="500"><button class="action-btn primary" :disabled="!currentModel || !currentModel.success" @click="handleSaveAs"><i class="el-icon-document-add"></i>另存为</button></el-tooltip><el-tooltip content="更新设备输出（立即生效）" placement="top" :open-delay="500"><button class="action-btn success" :disabled="!canApply" @click="handleApply"><i class="el-icon-video-play"></i>应用</button></el-tooltip></div></div><div class="page-body"><div v-if="runMode === 'regen'" class="empty-state" style="height: 100%; padding: 60px 20px;"><i class="el-icon-info" style="font-size: 48px; color: var(--text-muted);"></i><p style="margin-top: 20px; color: var(--text-secondary);">回灌模式下不支持参数编辑</p><p style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">请切换到"模型"模式进行参数编辑</p></div><template v-else><div class="data-path"><i class="el-icon-folder"></i> <span>数据目录: resource/loader/（统一文件夹）</span></div><div class="model-layout"><div class="model-list"><div class="model-list-header"><span>模型文件</span><div style="display:flex; gap:5px; align-items:center;"><el-button type="text" size="mini" icon="el-icon-plus" @click="handleCreateNewModel" title="新建模型文件"></el-button></div></div><div v-for="(model, index) in models" :key="index" class="model-item" :class="{ 
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  </style>
+<link href="css/chunk-0e3c8099.d793f7e8.css" rel="prefetch"><link href="css/chunk-297a144e.280b91eb.css" rel="prefetch"><link href="css/chunk-771331e4.3ed62e30.css" rel="prefetch"><link href="css/chunk-7e61c1c0.c7abf9da.css" rel="prefetch"><link href="js/chunk-0e3c8099.ab560fe7.js" rel="prefetch"><link href="js/chunk-297a144e.3f086e74.js" rel="prefetch"><link href="js/chunk-771331e4.8586b449.js" rel="prefetch"><link href="js/chunk-7e61c1c0.6509915c.js" rel="prefetch"><link href="css/chunk-vendors.d38403b9.css" rel="preload" as="style"><link href="css/index.ad774085.css" rel="preload" as="style"><link href="js/chunk-vendors.83f22ba7.js" rel="preload" as="script"><link href="js/index.e1c11402.js" rel="preload" as="script"></head>
+<body>
+  <div id="app">
+    <div class="app-layout">
+      <!-- 左侧设备边栏 -->
+      <aside class="device-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">X-Loader 上位机</span>
+          <el-tooltip :content="wsConnected ? 'WebSocket已连接' : 'WebSocket未连接'" placement="right">
+            <span class="ws-indicator" :class="{ connected: wsConnected }"></span>
+          </el-tooltip>
+        </div>
+        
+        <!-- 实验室选择（query_location_info） -->
+        <div class="sidebar-section">
+          <div class="section-title">
+            <span>实验室</span>
+            <el-tag v-if="!isLocationRegistered" size="mini" type="danger" effect="plain" style="font-weight: normal; transform: scale(0.85);">未注册</el-tag>
+              </div>
+          <div style="display: flex; gap: 6px;">
+            <el-select
+              v-model="selectedLocation"
+              size="mini"
+              placeholder="请选择实验室"
+              style="flex: 1;"
+              @change="onLocationChanged"
+            >
+              <el-option
+                v-if="selectedLocation === '未设置' && !isLocationRegistered"
+                key="未设置"
+                label="未设置（请选择实验室）"
+                value="未设置"
+                disabled
+              ></el-option>
+              <el-option
+                v-for="loc in locationList"
+                :key="loc"
+                :label="loc"
+                :value="loc"
+              ></el-option>
+            </el-select>
+            <el-button 
+              size="mini" 
+              type="primary" 
+              icon="el-icon-check" 
+              circle 
+              @click="handleSaveLocation"
+              title="保存实验室位置"
+            ></el-button>
+            </div>
+          </div>
+
+        <!-- lab / 机箱 / 设备列表（get_connect_status 推送） -->
+        <div class="sidebar-scroll">
+          <div v-if="!hasConnectStatus" class="empty-hint">
+            <i class="el-icon-info"></i>
+            <div>暂无状态数据</div>
+            <div class="muted">等待 get_connect_status 推送…</div>
+              </div>
+
+          <div v-for="lab in labView" :key="lab.labKey" class="lab-block">
+            <div class="lab-header">
+              <span class="lab-name">{{ lab.labKey }}</span>
+              <span class="lab-count">{{ lab.cabinets.length }} 机箱</span>
+            </div>
+
+            <div v-for="cab in lab.cabinets" :key="cab.ip" class="cabinet-block">
+              <!-- 机箱框（下层） + 单体（上层） -->
+              <div class="cabinet-stack">
+                <div class="cabinet-frame">
+                  <div class="cabinet-frame-bg">
+                    <img src="img/cabinet.png" alt="cabinet" />
+          </div>
+                  <div class="cabinet-row logo">
+                    <img class="cabinet-logo" src="img/logo.png" alt="logo" />
+        </div>
+                  <div class="cabinet-row ip">
+                    <span class="cabinet-ip-text">IP: {{ cab.ip }}</span>
+          </div>
+                  <div class="cabinet-body">
+                    <div class="cabinet-device-grid">
+                      <div
+                        v-for="dev in cab.devices"
+                        :key="dev.loader_num"
+                        class="device-item"
+                        :class="{ selected: isSelectedDevice(dev), disconnected: !toBool(dev.connect) }"
+                        @click="selectDevice(dev)"
+                        title="单击选中该设备"
+                      >
+                        <div class="device-pic">
+                          <img src="img/device.png" alt="device" />
+                          <span class="rgb-dot" :class="deviceLedClass(dev)"></span>
+                          <span class="device-index">{{ dev.loader_num + 1 }}</span>
+        </div>
+                        <div class="device-model" :title="dev.loader_name || dev.running_model || ''">
+                          {{ dev.loader_name || dev.running_model || '—' }}
+        </div>
+          </div>
+          </div>
+        </div>
+          </div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 右侧主区域 -->
+      <div class="main-area">
+        <div class="toolbar">
+          <!-- 标题已移至左侧栏 -->
+          <div class="toolbar-buttons">
+            <button class="tool-btn" @click="openUpgradeDialog">
+              <i class="el-icon-upload"></i>设备升级
+            </button>
+            <button class="tool-btn" @click="openLogDialog">
+              <i class="el-icon-document"></i>日志拉取
+            </button>
+            <button class="tool-btn" @click="openConsoleDrawer">
+              <i class="el-icon-monitor"></i>控制台
+            </button>
+          </div>
+        </div>
+
+        <div class="content-area">
+          <!-- 顶部控制栏：模型选择 / 刷新 / 启动 / 停止 -->
+          <div class="model-control-bar">
+            <div class="bar-left">
+              <span class="bar-label">模型选择</span>
+              <el-cascader
+                v-model="selectedModelPath"
+                :options="modelOptions"
+                :props="{ expandTrigger: 'hover' }"
+                size="mini"
+                clearable
+                placeholder="请选择项目/模型"
+                style="width: 320px;"
+              ></el-cascader>
+              <el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">
+                刷新
+              </el-button>
+              <el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning">
+                <el-radio-button label="model">模型</el-radio-button>
+                <el-radio-button label="regen">回灌</el-radio-button>
+              </el-radio-group>
+            </div>
+            <div class="bar-right">
+              <el-button size="mini" type="success" icon="el-icon-video-play" @click="startSelectedModel" :disabled="!canStartSelected">
+                启动
+              </el-button>
+              <el-button size="mini" type="danger" icon="el-icon-video-pause" @click="stopSelectedModel" :disabled="!canStopSelected">
+                停止
+              </el-button>
+            </div>
+          </div>
+
+          <div class="page-tabs">
+            <button class="page-tab" :class="{ active: activePage === 'info' }" @click="activePage = 'info'">设备信息</button>
+            <button class="page-tab" :class="{ active: activePage === 'model' }" @click="activePage = 'model'">参数编辑</button>
+            <button class="page-tab" :class="{ active: activePage === 'register' }" @click="activePage = 'register'">寄存器管理</button>
+          </div>
+
+          <!-- 工具弹窗：模型管理（暂不处理） -->
+          <el-dialog
+            title="模型管理"
+            :visible.sync="dialogModelVisible"
+            width="520px"
+          >
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+              <div style="color: var(--text-muted); font-size: 12px;">
+                设备文件根目录下的 project1/project2… 会在这里展示（log 文件夹不展示在模型管理里）。
+              </div>
+              <el-button size="mini" icon="el-icon-refresh" @click="loadModelTree" :loading="modelTreeLoading" :disabled="!wsConnected">刷新</el-button>
+            </div>
+            <el-tree
+              v-if="modelTreeData && modelTreeData.length"
+              :data="modelTreeData"
+              node-key="label"
+              :props="{ label: 'label', children: 'children' }"
+              :default-expand-all="false"
+              accordion
+            ></el-tree>
+            <div v-else style="color: var(--text-muted); font-size: 12px;">
+              {{ wsConnected ? (modelTreeLoading ? '加载中…' : '暂无项目目录') : 'WebSocket 未连接' }}
+            </div>
+            <span slot="footer" class="dialog-footer">
+              <el-button size="mini" @click="dialogModelVisible = false">关闭</el-button>
+            </span>
+          </el-dialog>
+
+          <!-- 工具弹窗：日志拉取（占位） -->
+          <el-dialog
+            title="日志拉取"
+            :visible.sync="dialogLogVisible"
+            width="560px"
+          >
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+              <div style="color: var(--text-muted); font-size: 12px;">
+                设备文件根目录下的 log 文件夹会在这里展示。
+              </div>
+              <el-button size="mini" icon="el-icon-refresh" @click="loadLogTree" :loading="logTreeLoading" :disabled="!wsConnected">刷新</el-button>
+            </div>
+            <el-tree
+              v-if="logTreeData && logTreeData.length"
+              :data="logTreeData"
+              node-key="label"
+              :props="{ label: 'label', children: 'children' }"
+              :default-expand-all="true"
+              accordion
+              @node-click="handleLogNodeClick"
+            ></el-tree>
+            <div v-else style="color: var(--text-muted); font-size: 12px;">
+              {{ wsConnected ? (logTreeLoading ? '加载中…' : '暂无日志目录/文件') : 'WebSocket 未连接' }}
+            </div>
+            <span slot="footer" class="dialog-footer">
+              <el-button size="mini" @click="dialogLogVisible = false">关闭</el-button>
+              <el-button size="mini" type="primary" @click="confirmPullLog" :disabled="!selectedLogPath">拉取选中日志</el-button>
+            </span>
+          </el-dialog>
+
+          <!-- 工具弹窗：设备升级（socket.md 14/15） -->
+          <el-dialog
+            title="设备升级（云端/近端）"
+            :visible.sync="dialogUpgradeVisible"
+            width="980px"
+          >
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+              <div style="color: var(--text-muted); font-size: 12px;">
+                当前展示：loader 名称 / SN / 运行状态 / 当前版本（来自 get_connect_status）；
+                云端版本（需先点击“获取云端版本”）。
+              </div>
+              <el-button size="mini" type="primary" icon="el-icon-refresh" @click="checkCloudNewVersion" :loading="otaLoading" :disabled="!wsConnected">
+                获取云端版本
+              </el-button>
+            </div>
+            <div style="margin-bottom: 10px; font-size: 12px; color: var(--text-secondary);">
+              {{ otaCloudStatusText }}
+            </div>
+
+            <el-table :data="upgradeRows" size="mini" border style="width: 100%;">
+              <el-table-column prop="ip" label="IP" width="140"></el-table-column>
+              <el-table-column prop="loader_name" label="Loader名称" width="140"></el-table-column>
+              <el-table-column prop="loader_num" label="编号" width="60"></el-table-column>
+              <el-table-column prop="sn" label="SN号" width="140"></el-table-column>
+              <el-table-column prop="running_text" label="运行状态" width="90"></el-table-column>
+              <el-table-column prop="current_version" label="当前版本" width="140"></el-table-column>
+              <el-table-column label="云端版本" width="160">
+                <template slot-scope="scope">
+                  <span v-if="scope.row.target_version">{{ scope.row.target_version }}</span>
+                  <span v-else style="color: var(--text-muted);">
+                    {{ otaCloudStatus === 'error' ? '获取失败' : (otaCloudStatus === 'empty' ? '无新版本' : (otaCloudStatus === 'never' ? '未获取' : '—')) }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column label="进度" width="160">
+                <template slot-scope="scope">
+                  <el-progress :percentage="Math.round(getOtaProgress(scope.row.ip, scope.row.loader_num))" :status="getOtaProgressStatus(scope.row.ip, scope.row.loader_num)" :stroke-width="10"></el-progress>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" min-width="220">
+                <template slot-scope="scope">
+                  <el-button size="mini" type="success" @click="openLocalUpgrade(scope.row)" :disabled="!wsConnected">近端升级</el-button>
+                  <el-button size="mini" type="primary" @click="startOta(scope.row.ip, scope.row.loader_num)" :disabled="!wsConnected">远端升级</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
+            <span slot="footer" class="dialog-footer">
+              <el-button size="mini" @click="dialogUpgradeVisible = false">关闭</el-button>
+            </span>
+          </el-dialog>
+
+          <!-- 近端升级：选择 hex 文件 -->
+          <el-dialog
+            title="近端升级（选择 .hex 文件）"
+            :visible.sync="dialogLocalUpgradeVisible"
+            width="560px"
+          >
+            <div style="margin-bottom: 15px; font-size: 12px; color: var(--text-muted);">
+              目标设备：{{ localUpgradeTarget.ip }} #{{ localUpgradeTarget.loader_num }}（{{ localUpgradeTarget.loader_name || '' }}）
+            </div>
+            
+            <el-tabs v-model="localUpgradeTab" type="border-card">
+              <el-tab-pane label="选择文件" name="file">
+                <div style="margin: 15px 0;">
+                  <el-upload
+                    action="#"
+                    :auto-upload="false"
+                    :limit="1"
+                    accept=".hex"
+                    :on-change="onHexSelected"
+                    :on-remove="onHexRemoved"
+                    :file-list="hexFileList"
+                  >
+                    <el-button size="small" type="primary" icon="el-icon-folder-opened">从资源管理器选择文件</el-button>
+                    <div slot="tip" class="el-upload__tip" style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">只允许选择 .hex 后缀文件</div>
+                  </el-upload>
+                  <div v-if="selectedHexName" style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
+                    已选择：{{ selectedHexName }}
+                  </div>
+                </div>
+              </el-tab-pane>
+              
+              <el-tab-pane label="输入路径" name="path">
+                <div style="margin: 15px 0;">
+                  <el-input
+                    v-model="localUpgradePath"
+                    placeholder="请输入 .hex 文件的绝对路径，例如：D:\workspace\aaa.hex"
+                    size="small"
+                    style="width: 100%;"
+                  >
+                    <template slot="prepend">文件路径</template>
+                  </el-input>
+                  <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+                    请输入服务器本地文件的完整路径
+                  </div>
+                </div>
+              </el-tab-pane>
+            </el-tabs>
+            
+            <span slot="footer" class="dialog-footer">
+              <el-button size="mini" @click="dialogLocalUpgradeVisible = false" :disabled="localUpgradeLoading">取消</el-button>
+              <el-button size="mini" type="primary" :disabled="(!selectedHexName && !localUpgradePath) || localUpgradeLoading" :loading="localUpgradeLoading" @click="confirmLocalUpgrade">开始近端升级</el-button>
+            </span>
+          </el-dialog>
+
+          <!-- 控制台：右侧抽屉（保留历史） -->
+          <!-- 控制台抽屉（右侧，非模态） -->
+          <el-drawer
+            title="控制台"
+            :visible.sync="drawerConsoleVisible"
+            direction="rtl"
+            size="420px"
+            :modal="false"
+            :wrapper-closable="false"
+            custom-class="non-modal-drawer"
+          >
+            <div style="display:flex; flex-direction:column; height: 100%;">
+              <div style="flex:1; overflow:auto; border:1px solid var(--border-color); border-radius:10px; padding:10px; background: var(--bg-white);">
+                <div v-if="!consoleHistory.length" style="color: var(--text-muted); font-size: 12px;">暂无历史记录</div>
+                <div v-for="(m, idx) in consoleHistory" :key="idx" style="margin-bottom:8px;">
+                  <div style="font-size:11px; color: var(--text-muted);">
+                    {{ m.ts }} · {{ m.dir === 'out' ? '发送' : '返回' }}
+                  </div>
+                  <pre style="white-space: pre-wrap; word-break: break-word; background: var(--bg-gray); padding:8px; border-radius:8px; font-family: var(--font-mono); font-size:12px; margin-top:4px;">{{ m.text }}</pre>
+                </div>
+              </div>
+              <div style="margin-top:10px; padding: 10px; background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: 6px;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                  <el-input 
+                    v-model="consoleInput" 
+                    size="small" 
+                    placeholder="输入控制台命令，例如 120GET:CCV"
+                    style="flex: 1;"
+                    @keyup.enter.native="sendConsoleCmd"
+                  ></el-input>
+                  <el-button size="small" type="primary" @click="sendConsoleCmd" :disabled="!wsConnected || !consoleInput">发送</el-button>
+                </div>
+              </div>
+              <div style="margin-top:6px; font-size: 12px; color: var(--text-muted);">
+                当前设备：{{ device_id }} #{{ loader_num }}
+              </div>
+            </div>
+          </el-drawer>
+
+          <!-- 新增 Sheet 弹窗 -->
+          <el-dialog title="新增寄存器 Sheet" :visible.sync="dialogAddSheetVisible" width="400px">
+            <el-form label-width="80px">
+              <el-form-item label="名称">
+                <el-input v-model="newSheetName" placeholder="例如：关键参数" @keyup.enter.native="confirmAddSheet"></el-input>
+              </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+              <el-button size="small" @click="dialogAddSheetVisible = false">取消</el-button>
+              <el-button size="small" type="primary" @click="confirmAddSheet">确定</el-button>
+            </div>
+          </el-dialog>
+
+          <!-- 右键菜单 -->
+          <div 
+            v-if="contextMenuVisible" 
+            class="context-menu" 
+            :style="{ left: contextMenuPos.x + 'px', top: contextMenuPos.y + 'px' }"
+            @click.stop
+          >
+            <div class="context-menu-item">
+              添加到页签 <i class="el-icon-arrow-right"></i>
+              <div class="context-submenu">
+                <div 
+                  v-for="s in registerSheets.filter(x => x.id !== 'root')" 
+                  :key="s.id" 
+                  class="context-menu-item"
+                  @click="addRegToSheet(contextMenuReg, s.id)"
+                >
+                  {{ s.name }}
+                </div>
+                <div v-if="registerSheets.length <= 1" class="context-menu-item muted">暂无自定义页签</div>
+              </div>
+            </div>
+            <div 
+              v-if="activeSheetId !== 'root'" 
+              class="context-menu-item danger" 
+              @click="removeRegFromCurrentSheet(contextMenuReg)"
+            >
+              从当前页签删除
+            </div>
+          </div>
+
+          <!-- 设备信息页 -->
+          <div class="page-content" :class="{ active: activePage === 'info' }">
+            <div class="page-header">
+              <h2 class="page-title">设备信息</h2>
+              <el-button size="mini" icon="el-icon-refresh" @click="refreshDeviceInfo">刷新</el-button>
+            </div>
+            <div class="page-body">
+              <!-- 设备概览卡片 -->
+              <div class="device-overview-card">
+                <div class="device-photo">
+                  <!-- 设备图片展示 -->
+                  <img src="img/device_info.png" alt="设备图片" />
+                  <div class="device-photo-overlay" v-if="!deviceConnected">
+                    <i class="el-icon-warning"></i>
+                    <span>设备未连接</span>
+                  </div>
+                </div>
+                <div class="device-overview-info">
+                  <div class="device-overview-header">
+                    <h3 class="device-model-name">{{ currentDeviceName }}</h3>
+                    <el-tag :type="deviceConnected ? 'success' : 'info'" size="small">
+                      {{ deviceConnected ? '在线' : '离线' }}
+                    </el-tag>
+                  </div>
+                  
+                  <div class="device-info-grid">
+                    <div class="info-item">
+                      <span class="info-label">设备序列号</span>
+                      <span class="info-value sn">{{ deviceInfo.sn || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">硬件版本</span>
+                      <span class="info-value">{{ deviceInfo.hardwareVersion || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">软件版本</span>
+                      <span class="info-value">{{ deviceInfo.softwareVersion || '--' }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">运行时间</span>
+                      <span class="info-value highlight">{{ deviceInfo.runTime || '--' }}</span>
+                    </div>
+                  </div>
+                  
+                  <!-- 正在运行的模型 -->
+                  <div class="running-model-info" v-if="deviceConnected && isModelRunning">
+                    <div class="running-model-badge">
+                      <i class="el-icon-video-play"></i>
+                      <span>模型运行中</span>
+                    </div>
+                    <div class="running-model-detail">
+                      <span class="running-label">文件:</span>
+                      <span class="running-value">{{ runningFile }}</span>
+                      <span class="running-label">模块:</span>
+                      <span class="running-value">{{ getModuleDisplayName(runningModule) }}</span>
+                    </div>
+                  </div>
+                  <div class="running-model-info stopped" v-else-if="deviceConnected">
+                    <div class="running-model-badge stopped">
+                      <i class="el-icon-video-pause"></i>
+                      <span>模型未运行</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 设备规格 -->
+              <div class="spec-section">
+                <h4 class="section-title">
+                  <i class="el-icon-data-analysis"></i>
+                  设备规格
+                </h4>
+                <div class="spec-grid">
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(37, 99, 235, 0.1); color: var(--primary-color);">
+                      <i class="el-icon-s-data"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">{{ currentSpecs.max_current_a }} A</span>
+                      <span class="spec-label">最大电流</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success-color);">
+                      <i class="el-icon-lightning"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">±{{ Math.abs(currentSpecs.max_voltage_v) }} V</span>
+                      <span class="spec-label">最大电压</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);">
+                      <i class="el-icon-odometer"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">{{ currentSpecs.max_power_w }} W</span>
+                      <span class="spec-label">最大功率</span>
+                    </div>
+                  </div>
+                  <div class="spec-card">
+                    <div class="spec-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--running-color);">
+                      <i class="el-icon-time"></i>
+                    </div>
+                    <div class="spec-content">
+                      <span class="spec-value">{{ currentSpecs.sample_rate_khz }} kHz</span>
+                      <span class="spec-label">采样率</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- 实时数据 -->
+              <div class="realtime-section" v-if="deviceConnected">
+                <h4 class="section-title">
+                  <i class="el-icon-data-line"></i>
+                  实时数据
+                </h4>
+                <div class="realtime-grid">
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.current.toFixed(1) }}</span>
+                    <span class="realtime-unit">A</span>
+                    <span class="realtime-label">电流</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.current / 100 * 100) + '%' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.voltage.toFixed(0) }}</span>
+                    <span class="realtime-unit">V</span>
+                    <span class="realtime-label">电压</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.voltage / 600 * 100) + '%', background: 'var(--success-color)' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.power.toFixed(1) }}</span>
+                    <span class="realtime-unit">kW</span>
+                    <span class="realtime-label">功率</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.power / 50 * 100) + '%', background: 'var(--warning-color)' }"></div>
+                    </div>
+                  </div>
+                  <div class="realtime-card">
+                    <span class="realtime-value">{{ realtimeData.temperature }}</span>
+                    <span class="realtime-unit">°C</span>
+                    <span class="realtime-label">温度</span>
+                    <div class="realtime-bar">
+                      <div class="realtime-bar-fill" :style="{ width: (realtimeData.temperature / 80 * 100) + '%', background: realtimeData.temperature > 60 ? 'var(--error-color)' : 'var(--running-color)' }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 参数编辑页 -->
+          <div class="page-content" :class="{ active: activePage === 'model' }">
+            <div class="page-header">
+              <h2 class="page-title">参数编辑</h2>
+              <div class="btn-group">
+                <el-tooltip content="上传当前文件到云端服务器" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected || !currentModel || !currentModel.path" @click="handleUploadCloud">
+                    <i class="el-icon-upload2"></i>上传云端
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="从云端获取模型文件列表" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadCloudModel">
+                    <i class="el-icon-download"></i>云端获取
+                  </button>
+                </el-tooltip>
+                
+                <span class="btn-divider"></span>
+                
+                <el-tooltip content="将当前文件导入到设备存储" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleLoadModelToDevice">
+                    <i class="el-icon-top"></i>导入设备
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="从设备读取模型文件" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleGetFileInfo">
+                    <i class="el-icon-bottom"></i>设备获取
+                  </button>
+                </el-tooltip>
+                
+                <span class="btn-divider"></span>
+                
+                <el-tooltip content="保存到本地文件" placement="top" :open-delay="500">
+                  <button class="action-btn primary" :disabled="!currentModel || !hasModified" @click="handleSave">
+                    <i class="el-icon-folder-checked"></i>保存
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="另存为新文件" placement="top" :open-delay="500">
+                  <button class="action-btn primary" :disabled="!currentModel || !currentModel.success" @click="handleSaveAs">
+                    <i class="el-icon-document-add"></i>另存为
+                  </button>
+                </el-tooltip>
+                <el-tooltip content="更新设备输出（立即生效）" placement="top" :open-delay="500">
+                  <button class="action-btn success" :disabled="!canApply" @click="handleApply">
+                    <i class="el-icon-video-play"></i>应用
+                  </button>
+                </el-tooltip>
+              </div>
+            </div>
+            <div class="page-body">
+              <!-- 回灌模式时显示空状态 -->
+              <div v-if="runMode === 'regen'" class="empty-state" style="height: 100%; padding: 60px 20px;">
+                <i class="el-icon-info" style="font-size: 48px; color: var(--text-muted);"></i>
+                <p style="margin-top: 20px; color: var(--text-secondary);">回灌模式下不支持参数编辑</p>
+                <p style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">请切换到"模型"模式进行参数编辑</p>
+              </div>
+              
+              <!-- 模型模式时显示编辑界面 -->
+              <template v-else>
+              <div class="data-path">
+                <i class="el-icon-folder"></i>
+                <span>数据目录: resource/loader/（统一文件夹）</span>
+              </div>
+              
+              <div class="model-layout">
+                <!-- 模型列表 -->
+                <div class="model-list">
+                  <div class="model-list-header">
+                    <span>模型文件</span>
+                    <div style="display:flex; gap:5px; align-items:center;">
+                      <el-button type="text" size="mini" icon="el-icon-plus" @click="handleCreateNewModel" title="新建模型文件"></el-button>
+                    </div>
+                  </div>
+                  <div 
+                    v-for="(model, index) in models" 
+                    :key="index"
+                    class="model-item"
+                    :class="{ 
                       active: activeModelIndex === index,
                       'has-error': model.errors && model.errors.length > 0,
                       'is-running': isFileRunning(model.filename)
-                    }" @click="selectModel(index)"><i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i><div class="model-item-info"><div class="model-item-name">{{ model.filename }}</div><div class="model-item-size">{{ model.modules ? model.modules.length + ' 个模块' : '解析失败' }}</div></div><div class="model-item-btns" @click.stop><el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn" @click="handleDeleteModel(model, index)" v-if="!isFileRunning(model.filename)" title="删除模型文件"></el-button></div><span v-if="isFileRunning(model.filename)" class="model-item-badge running"><i class="el-icon-video-play"></i></span></div></div><div class="model-editor" v-if="currentModel"><div class="editor-toolbar"><div class="editor-filename"><i class="el-icon-document"></i> <span>{{ currentModel.filename }}</span> <span class="modified-dot" v-if="hasModified"></span><el-tag v-if="isFileRunning(currentModel.filename)" size="mini" type="warning" effect="dark" style="margin-left:8px;"><i class="el-icon-video-play"></i> 运行中</el-tag></div><div style="display:flex; gap:10px;"><el-button type="text" size="mini" icon="el-icon-circle-plus-outline" @click="handleOpenAddModuleDialog">添加模块</el-button><el-button type="text" size="mini" icon="el-icon-view" @click="showRaw = !showRaw">{{ showRaw ? '编辑视图' : '原始内容' }}</el-button></div></div><div v-if="showRaw" style="flex: 1; overflow: auto;"><pre style="background: var(--bg-gray); padding: 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap;">{{ currentModel.raw }}</pre></div><div v-else style="flex: 1; overflow-y: auto;"><div v-if="currentModel.modules && currentModel.modules.length"><div v-for="(mod, mi) in currentModel.modules" :key="mi" class="module-section" :class="{ 'is-running': isModuleRunning(currentModel.filename, mod.name) }"><div class="module-header" @click="toggleModule(mi)"><span class="module-toggle" :class="{ expanded: expandedModules[mi] }"><i class="el-icon-arrow-right"></i></span><div class="module-info"><div class="module-name-row"><span class="module-name">{{ mod.name }}</span> <span class="module-name-cn" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).name }}</span></div><div class="module-desc" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).description }}</div></div><span v-if="isModuleRunning(currentModel.filename, mod.name)" class="running-indicator"><i class="el-icon-video-play"></i> 运行中 </span><span class="module-count">{{ mod.params.length }} 参数</span><div class="module-btns" @click.stop><el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn" @click="handleRemoveModule(mi)" v-if="!isModuleRunning(currentModel.filename, mod.name)" title="删除此模块"></el-button></div></div><div class="module-body" :class="{ expanded: expandedModules[mi] }"><div v-if="expandedModules[mi]" style="padding: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px;"><el-button type="text" size="mini" icon="el-icon-plus" @click="handleOpenAddParamDialog(mi)" :disabled="isModuleRunning(currentModel.filename, mod.name)">添加参数</el-button></div><div v-for="(param, pi) in mod.params" :key="pi" class="param-row" :class="{ 'out-of-range': isOutOfRange(param) }"><div class="param-label-section"><div class="param-name-row"><span class="param-key">{{ param.name }}</span> <span class="param-name-cn" v-if="getParamDef(param.name)">{{ getParamDef(param.name).name }} </span><span class="param-unknown" v-else>未定义</span></div><div class="param-desc" v-if="getParamDef(param.name)">{{ getParamDef(param.name).description }}</div><div class="param-range" v-if="getParamDef(param.name) && getParamDef(param.name).min !== undefined"><i class="el-icon-info"></i> 范围: {{ getParamDef(param.name).min }} ~ {{ getParamDef(param.name).max }} <span v-if="getParamDef(param.name).default !== undefined">(默认: {{ getParamDef(param.name).default }})</span></div></div><div class="param-input-section"><template v-if="param.type === 'single'"><div class="param-input-row"><el-input-number v-if="isNumericParam(param)" :value="param.value" size="mini" controls-position="right" :min="getParamDef(param.name) ? getParamDef(param.name).min : -Infinity" :max="getParamDef(param.name) ? getParamDef(param.name).max : Infinity" :step="getParamDef(param.name) ? (getParamDef(param.name).step || 1) : 1" :precision="getPrecision(param.name)" @change="updateSingleParam(param, $event)"></el-input-number><el-input v-else v-model="param.value" size="mini" @input="hasModified = true"></el-input><span class="param-unit">{{ getParamDef(param.name) ? getParamDef(param.name).unit : '' }}</span> <span class="param-type-badge">{{ param.type }}</span></div><div class="range-warning" v-if="isOutOfRange(param)"><i class="el-icon-warning"></i> 值超出建议范围</div></template><template v-else-if="param.type === 'array'"><div class="array-display"><div class="array-header"><span class="array-label">数组 [{{ param.value.length }}]</span><el-button type="text" size="mini" icon="el-icon-plus" @click="addArrayItem(param)"></el-button></div><div class="array-items"><div v-for="(item, idx) in param.value" :key="idx" class="array-item"><span class="array-index">[{{ idx }}]</span><el-input-number v-if="typeof item === 'number'" :value="item" size="mini" controls-position="right" @change="updateArrayItem(param, idx, $event)"></el-input-number><el-input v-else :value="item" size="mini" @input="updateArrayItemStr(param, idx, $event)"></el-input><el-button type="text" size="mini" icon="el-icon-delete" @click="removeArrayItem(param, idx)"></el-button></div></div></div></template><template v-else-if="param.type === 'matrix'"><div class="matrix-display"><div class="matrix-toolbar"><span class="matrix-size">{{ param.value.length }} × {{ param.value[0] ? param.value[0].length : 0 }}</span><el-button type="text" size="mini" icon="el-icon-plus" @click="addMatrixRow(param)">添加行</el-button></div><div class="matrix-table"><div class="matrix-header" v-if="getParamDef(param.name) && getParamDef(param.name).columns"><span class="matrix-row-index">#</span> <span v-for="(col, ci) in getParamDef(param.name).columns" :key="ci" class="matrix-header-cell">{{ col }}</span> <span class="matrix-action-cell"></span></div><div v-for="(row, ri) in param.value" :key="ri" class="matrix-row"><span class="matrix-row-index">{{ ri }}</span><el-input-number v-for="(cell, ci) in row" :key="ci" :value="cell" size="mini" controls-position="right" class="matrix-cell-input" @change="updateMatrixCell(param, ri, ci, $event)"></el-input-number><el-button type="text" size="mini" icon="el-icon-delete" class="matrix-delete-btn" @click="removeMatrixRow(param, ri)"></el-button></div></div></div></template></div><div class="param-actions" style="margin-left: 10px;"><el-button type="text" size="mini" icon="el-icon-delete" @click="handleRemoveParam(mi, pi)" :disabled="isModuleRunning(currentModel.filename, mod.name)" title="删除此参数"></el-button></div></div></div></div></div><div v-else class="empty-state"><i class="el-icon-warning-outline"></i><p>该文件解析失败</p></div></div></div><div v-else class="model-editor"><div class="empty-state" style="height: 100%;"><i class="el-icon-folder-opened"></i><p>请从左侧选择一个模型文件</p></div></div></div></template></div></div><el-dialog title="新建模型文件" :visible.sync="dialogNewModelVisible" width="400px"><el-form label-width="80px"><el-form-item label="文件名"><el-input v-model="newModelFilename" placeholder="请输入文件名（不含扩展名）"><template slot="append">.bin</template></el-input></el-form-item></el-form><div slot="footer"><el-button size="mini" @click="dialogNewModelVisible = false">取消</el-button><el-button size="mini" type="primary" @click="confirmCreateNewModel">确定</el-button></div></el-dialog><el-dialog title="添加模块" :visible.sync="dialogAddModuleVisible" width="500px"><el-form label-width="100px"><el-form-item label="模块类型"><el-select v-model="selectedModuleType" placeholder="请选择模块类型" style="width: 100%;" filterable><el-option v-for="mod in availableModules" :key="mod.id" :label="mod.name + ' (' + mod.id + ')'" :value="mod.id"><span style="float: left">{{ mod.name }}</span> <span style="float: right; color: #8492a6; font-size: 13px">{{ mod.id }}</span></el-option></el-select></el-form-item><div v-if="selectedModuleType" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;"><div style="font-weight: bold; margin-bottom: 5px;">模块描述:</div><div style="font-size: 13px; color: #606266;">{{ getModuleDesc(selectedModuleType) }}</div></div></el-form><div slot="footer"><el-button size="mini" @click="dialogAddModuleVisible = false">取消</el-button><el-button size="mini" type="primary" @click="confirmAddModule" :disabled="!selectedModuleType">确定</el-button></div></el-dialog><el-dialog title="添加参数" :visible.sync="dialogAddParamVisible" width="500px"><el-form label-width="100px"><el-form-item label="参数类型"><el-select v-model="selectedParamName" placeholder="请选择参数" style="width: 100%;" filterable><el-option v-for="param in availableParamsForModule" :key="param.name" :label="param.displayName" :value="param.name"><span style="float: left">{{ param.displayName }}</span> <span style="float: right; color: #8492a6; font-size: 13px">ID: {{ param.id }}</span></el-option></el-select></el-form-item><div v-if="selectedParamName" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;"><div style="font-weight: bold; margin-bottom: 5px;">参数描述:</div><div style="font-size: 13px; color: #606266;">{{ getParamDef(selectedParamName) ? getParamDef(selectedParamName).description : '无描述' }}</div></div></el-form><div slot="footer"><el-button size="mini" @click="dialogAddParamVisible = false">取消</el-button><el-button size="mini" type="primary" @click="confirmAddParam" :disabled="!selectedParamName">确定</el-button></div></el-dialog><el-dialog title="导入设备" :visible.sync="dialogImportDeviceVisible" width="400px"><el-form label-width="100px"><el-form-item label="导入方式"><el-radio-group v-model="importDeviceType"><el-radio label="current">导入当前设备</el-radio><el-radio label="all">导入所有设备</el-radio></el-radio-group></el-form-item><div v-if="currentModel" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;"><div style="font-size: 13px; color: #606266;"><div><strong>文件:</strong> {{ currentModel.filename }}</div><div><strong>路径:</strong> {{ currentModel.path }}</div></div></div></el-form><div slot="footer"><el-button size="mini" @click="dialogImportDeviceVisible = false">取消</el-button><el-button size="mini" type="primary" @click="confirmImportDevice">确定</el-button></div></el-dialog><div class="page-content" :class="{ active: activePage === 'register' }"><div class="page-header"><h2 class="page-title">寄存器管理</h2><div class="page-header-actions"><el-input v-model="registerSearch" placeholder="搜索寄存器..." prefix-icon="el-icon-search" size="mini" style="width: 200px; margin-right: 10px;" clearable></el-input><el-button size="mini" icon="el-icon-refresh" @click="refreshSheetRegisters(currentSheet)" :loading="registerLoading">刷新当前页</el-button></div></div><div class="page-body register-page" style="display: flex; flex-direction: column;"><div style="display: flex; align-items: center; background: var(--bg-white); border-bottom: 1px solid var(--border-color); padding-left: 10px;"><el-tabs v-model="activeSheetId" type="card" @tab-remove="handleSheetRemove" style="margin-bottom: -1px;"><el-tab-pane v-for="(sheet, index) in registerSheets" :key="sheet.id" :name="sheet.id" :closable="sheet.id !== 'root'"><span slot="label" class="tab-label-zone" :class="{ 
+                    }"
+                    @click="selectModel(index)"
+                  >
+                    <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
+                    <div class="model-item-info">
+                      <div class="model-item-name">{{ model.filename }}</div>
+                      <div class="model-item-size">{{ model.modules ? model.modules.length + ' 个模块' : '解析失败' }}</div>
+                    </div>
+                    <div class="model-item-btns" @click.stop>
+                      <el-button 
+                        type="text" 
+                        size="mini" 
+                        icon="el-icon-delete" 
+                        class="delete-btn"
+                        @click="handleDeleteModel(model, index)"
+                        v-if="!isFileRunning(model.filename)"
+                        title="删除模型文件"
+                      ></el-button>
+                    </div>
+                    <span v-if="isFileRunning(model.filename)" class="model-item-badge running">
+                      <i class="el-icon-video-play"></i>
+                    </span>
+                  </div>
+                </div>
+                
+                <!-- 编辑器 -->
+                <div class="model-editor" v-if="currentModel">
+                  <div class="editor-toolbar">
+                    <div class="editor-filename">
+                      <i class="el-icon-document"></i>
+                      <span>{{ currentModel.filename }}</span>
+                      <span class="modified-dot" v-if="hasModified"></span>
+                      <el-tag v-if="isFileRunning(currentModel.filename)" size="mini" type="warning" effect="dark" style="margin-left:8px;">
+                        <i class="el-icon-video-play"></i> 运行中
+                      </el-tag>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                      <el-button type="text" size="mini" icon="el-icon-circle-plus-outline" @click="handleOpenAddModuleDialog">
+                        添加模块
+                      </el-button>
+                    <el-button type="text" size="mini" icon="el-icon-view" @click="showRaw = !showRaw">
+                      {{ showRaw ? '编辑视图' : '原始内容' }}
+                    </el-button>
+                    </div>
+                  </div>
+                  
+                  <!-- 原始内容视图 -->
+                  <div v-if="showRaw" style="flex: 1; overflow: auto;">
+                    <pre style="background: var(--bg-gray); padding: 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap;">{{ currentModel.raw }}</pre>
+                  </div>
+                  
+                  <!-- 模块编辑视图 -->
+                  <div v-else style="flex: 1; overflow-y: auto;">
+                    <div v-if="currentModel.modules && currentModel.modules.length">
+                      <div 
+                        v-for="(mod, mi) in currentModel.modules" 
+                        :key="mi" 
+                        class="module-section"
+                        :class="{ 'is-running': isModuleRunning(currentModel.filename, mod.name) }"
+                      >
+                        <div class="module-header" @click="toggleModule(mi)">
+                          <span class="module-toggle" :class="{ expanded: expandedModules[mi] }">
+                            <i class="el-icon-arrow-right"></i>
+                          </span>
+                          <div class="module-info">
+                            <div class="module-name-row">
+                              <span class="module-name">{{ mod.name }}</span>
+                              <span class="module-name-cn" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).name }}</span>
+                            </div>
+                            <div class="module-desc" v-if="getModuleDef(mod.name)">{{ getModuleDef(mod.name).description }}</div>
+                          </div>
+                          <span v-if="isModuleRunning(currentModel.filename, mod.name)" class="running-indicator">
+                            <i class="el-icon-video-play"></i> 运行中
+                          </span>
+                          <span class="module-count">{{ mod.params.length }} 参数</span>
+                          <div class="module-btns" @click.stop>
+                            <el-button 
+                              type="text" 
+                              size="mini" 
+                              icon="el-icon-delete" 
+                              class="delete-btn"
+                              @click="handleRemoveModule(mi)"
+                              v-if="!isModuleRunning(currentModel.filename, mod.name)"
+                              title="删除此模块"
+                            ></el-button>
+                          </div>
+                        </div>
+                        <div class="module-body" :class="{ expanded: expandedModules[mi] }">
+                          <!-- 添加参数按钮 -->
+                          <div v-if="expandedModules[mi]" style="padding: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px;">
+                            <el-button 
+                              type="text" 
+                              size="mini" 
+                              icon="el-icon-plus" 
+                              @click="handleOpenAddParamDialog(mi)"
+                              :disabled="isModuleRunning(currentModel.filename, mod.name)"
+                            >
+                              添加参数
+                            </el-button>
+                          </div>
+                          <div 
+                            v-for="(param, pi) in mod.params" 
+                            :key="pi" 
+                            class="param-row"
+                            :class="{ 'out-of-range': isOutOfRange(param) }"
+                          >
+                            <div class="param-label-section">
+                              <div class="param-name-row">
+                                <span class="param-key">{{ param.name }}</span>
+                                <span class="param-name-cn" v-if="getParamDef(param.name)">
+                                  {{ getParamDef(param.name).name }}
+                                </span>
+                                <span class="param-unknown" v-else>未定义</span>
+                              </div>
+                              <div class="param-desc" v-if="getParamDef(param.name)">
+                                {{ getParamDef(param.name).description }}
+                              </div>
+                              <div class="param-range" v-if="getParamDef(param.name) && getParamDef(param.name).min !== undefined">
+                                <i class="el-icon-info"></i>
+                                范围: {{ getParamDef(param.name).min }} ~ {{ getParamDef(param.name).max }}
+                                <span v-if="getParamDef(param.name).default !== undefined">
+                                  (默认: {{ getParamDef(param.name).default }})
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div class="param-input-section">
+                              <!-- 单值 -->
+                              <template v-if="param.type === 'single'">
+                                <div class="param-input-row">
+                                  <el-input-number 
+                                    v-if="isNumericParam(param)" 
+                                    :value="param.value" 
+                                    size="mini" 
+                                    controls-position="right"
+                                    :min="getParamDef(param.name) ? getParamDef(param.name).min : -Infinity"
+                                    :max="getParamDef(param.name) ? getParamDef(param.name).max : Infinity"
+                                    :step="getParamDef(param.name) ? (getParamDef(param.name).step || 1) : 1"
+                                    :precision="getPrecision(param.name)"
+                                    @change="updateSingleParam(param, $event)"
+                                  ></el-input-number>
+                                  <el-input v-else v-model="param.value" size="mini" @input="hasModified = true"></el-input>
+                                  <span class="param-unit">{{ getParamDef(param.name) ? getParamDef(param.name).unit : '' }}</span>
+                                  <span class="param-type-badge">{{ param.type }}</span>
+                                </div>
+                                <div class="range-warning" v-if="isOutOfRange(param)">
+                                  <i class="el-icon-warning"></i>
+                                  值超出建议范围
+                                </div>
+                              </template>
+                              
+                              <!-- 数组 -->
+                              <template v-else-if="param.type === 'array'">
+                                <div class="array-display">
+                                  <div class="array-header">
+                                    <span class="array-label">数组 [{{ param.value.length }}]</span>
+                                    <el-button type="text" size="mini" icon="el-icon-plus" @click="addArrayItem(param)"></el-button>
+                                  </div>
+                                  <div class="array-items">
+                                    <div v-for="(item, idx) in param.value" :key="idx" class="array-item">
+                                      <span class="array-index">[{{ idx }}]</span>
+                                      <el-input-number 
+                                        v-if="typeof item === 'number'"
+                                        :value="item"
+                                        size="mini"
+                                        controls-position="right"
+                                        @change="updateArrayItem(param, idx, $event)"
+                                      ></el-input-number>
+                                      <el-input 
+                                        v-else 
+                                        :value="item" 
+                                        size="mini"
+                                        @input="updateArrayItemStr(param, idx, $event)"
+                                      ></el-input>
+                                      <el-button type="text" size="mini" icon="el-icon-delete" @click="removeArrayItem(param, idx)"></el-button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                              
+                              <!-- 矩阵 -->
+                              <template v-else-if="param.type === 'matrix'">
+                                <div class="matrix-display">
+                                  <div class="matrix-toolbar">
+                                    <span class="matrix-size">{{ param.value.length }} × {{ param.value[0] ? param.value[0].length : 0 }}</span>
+                                    <el-button type="text" size="mini" icon="el-icon-plus" @click="addMatrixRow(param)">添加行</el-button>
+                                  </div>
+                                  <div class="matrix-table">
+                                    <div class="matrix-header" v-if="getParamDef(param.name) && getParamDef(param.name).columns">
+                                      <span class="matrix-row-index">#</span>
+                                      <span 
+                                        v-for="(col, ci) in getParamDef(param.name).columns" 
+                                        :key="ci" 
+                                        class="matrix-header-cell"
+                                      >{{ col }}</span>
+                                      <span class="matrix-action-cell"></span>
+                                    </div>
+                                    <div v-for="(row, ri) in param.value" :key="ri" class="matrix-row">
+                                      <span class="matrix-row-index">{{ ri }}</span>
+                                      <el-input-number
+                                        v-for="(cell, ci) in row"
+                                        :key="ci"
+                                        :value="cell"
+                                        size="mini"
+                                        controls-position="right"
+                                        class="matrix-cell-input"
+                                        @change="updateMatrixCell(param, ri, ci, $event)"
+                                      ></el-input-number>
+                                      <el-button type="text" size="mini" icon="el-icon-delete" class="matrix-delete-btn" @click="removeMatrixRow(param, ri)"></el-button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </template>
+                            </div>
+                            <!-- 删除参数按钮 -->
+                            <div class="param-actions" style="margin-left: 10px;">
+                              <el-button 
+                                type="text" 
+                                size="mini" 
+                                icon="el-icon-delete" 
+                                @click="handleRemoveParam(mi, pi)"
+                                :disabled="isModuleRunning(currentModel.filename, mod.name)"
+                                title="删除此参数"
+                              ></el-button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div v-else class="empty-state">
+                      <i class="el-icon-warning-outline"></i>
+                      <p>该文件解析失败</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div v-else class="model-editor">
+                  <div class="empty-state" style="height: 100%;">
+                    <i class="el-icon-folder-opened"></i>
+                    <p>请从左侧选择一个模型文件</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+              </template>
+          </div>
+
+          <!-- 弹窗：新建模型文件 -->
+          <el-dialog title="新建模型文件" :visible.sync="dialogNewModelVisible" width="400px">
+            <el-form label-width="80px">
+              <el-form-item label="文件名">
+                <el-input v-model="newModelFilename" placeholder="请输入文件名（不含扩展名）">
+                  <template slot="append">.bin</template>
+                </el-input>
+              </el-form-item>
+            </el-form>
+            <div slot="footer">
+              <el-button size="mini" @click="dialogNewModelVisible = false">取消</el-button>
+              <el-button size="mini" type="primary" @click="confirmCreateNewModel">确定</el-button>
+            </div>
+          </el-dialog>
+
+          <!-- 弹窗：添加模块 -->
+          <el-dialog title="添加模块" :visible.sync="dialogAddModuleVisible" width="500px">
+            <el-form label-width="100px">
+              <el-form-item label="模块类型">
+                <el-select v-model="selectedModuleType" placeholder="请选择模块类型" style="width: 100%;" filterable>
+                  <el-option
+                    v-for="mod in availableModules"
+                    :key="mod.id"
+                    :label="mod.name + ' (' + mod.id + ')'"
+                    :value="mod.id"
+                  >
+                    <span style="float: left">{{ mod.name }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ mod.id }}</span>
+                  </el-option>
+                </el-select>
+              </el-form-item>
+              <div v-if="selectedModuleType" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">模块描述:</div>
+                <div style="font-size: 13px; color: #606266;">{{ getModuleDesc(selectedModuleType) }}</div>
+              </div>
+            </el-form>
+            <div slot="footer">
+              <el-button size="mini" @click="dialogAddModuleVisible = false">取消</el-button>
+              <el-button size="mini" type="primary" @click="confirmAddModule" :disabled="!selectedModuleType">确定</el-button>
+            </div>
+          </el-dialog>
+
+          <!-- 弹窗：添加参数 -->
+          <el-dialog title="添加参数" :visible.sync="dialogAddParamVisible" width="500px">
+            <el-form label-width="100px">
+              <el-form-item label="参数类型">
+                <el-select v-model="selectedParamName" placeholder="请选择参数" style="width: 100%;" filterable>
+                  <el-option
+                    v-for="param in availableParamsForModule"
+                    :key="param.name"
+                    :label="param.displayName"
+                    :value="param.name"
+                  >
+                    <span style="float: left">{{ param.displayName }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">ID: {{ param.id }}</span>
+                  </el-option>
+                </el-select>
+              </el-form-item>
+              <div v-if="selectedParamName" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <div style="font-weight: bold; margin-bottom: 5px;">参数描述:</div>
+                <div style="font-size: 13px; color: #606266;">{{ getParamDef(selectedParamName) ? getParamDef(selectedParamName).description : '无描述' }}</div>
+              </div>
+            </el-form>
+            <div slot="footer">
+              <el-button size="mini" @click="dialogAddParamVisible = false">取消</el-button>
+              <el-button size="mini" type="primary" @click="confirmAddParam" :disabled="!selectedParamName">确定</el-button>
+            </div>
+          </el-dialog>
+
+          <!-- 弹窗：导入设备选择 -->
+          <el-dialog title="导入设备" :visible.sync="dialogImportDeviceVisible" width="400px">
+            <el-form label-width="100px">
+              <el-form-item label="导入方式">
+                <el-radio-group v-model="importDeviceType">
+                  <el-radio label="current">导入当前设备</el-radio>
+                  <el-radio label="all">导入所有设备</el-radio>
+                </el-radio-group>
+              </el-form-item>
+              <div v-if="currentModel" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                <div style="font-size: 13px; color: #606266;">
+                  <div><strong>文件:</strong> {{ currentModel.filename }}</div>
+                  <div><strong>路径:</strong> {{ currentModel.path }}</div>
+                </div>
+              </div>
+            </el-form>
+            <div slot="footer">
+              <el-button size="mini" @click="dialogImportDeviceVisible = false">取消</el-button>
+              <el-button size="mini" type="primary" @click="confirmImportDevice">确定</el-button>
+            </div>
+          </el-dialog>
+
+          <!-- 寄存器管理页 -->
+          <div class="page-content" :class="{ active: activePage === 'register' }">
+            <div class="page-header">
+              <h2 class="page-title">寄存器管理</h2>
+              <div class="page-header-actions">
+                <el-input 
+                  v-model="registerSearch" 
+                  placeholder="搜索寄存器..." 
+                  prefix-icon="el-icon-search"
+                  size="mini"
+                  style="width: 200px; margin-right: 10px;"
+                  clearable
+                ></el-input>
+                <el-button size="mini" icon="el-icon-refresh" @click="refreshSheetRegisters(currentSheet)" :loading="registerLoading">
+                  刷新当前页
+                </el-button>
+              </div>
+            </div>
+            <div class="page-body register-page" style="display: flex; flex-direction: column;">
+              <!-- Sheet 切换 -->
+              <div style="display: flex; align-items: center; background: var(--bg-white); border-bottom: 1px solid var(--border-color); padding-left: 10px;">
+                <el-tabs 
+                  v-model="activeSheetId" 
+                  type="card" 
+                  @tab-remove="handleSheetRemove"
+                  style="margin-bottom: -1px;"
+                >
+                  <el-tab-pane
+                    v-for="(sheet, index) in registerSheets"
+                    :key="sheet.id"
+                    :name="sheet.id"
+                    :closable="sheet.id !== 'root'"
+                  >
+                    <span 
+                      slot="label" 
+                      class="tab-label-zone"
+                      :class="{ 
                         'root-tab-label': sheet.id === 'root',
                         'drag-over-tab': dragOverTabIndex === index
-                      }" :draggable="sheet.id !== 'root'" @dragstart="handleTabDragStart($event, index)" @dragover.prevent="handleTabDragOver($event, index)" @dragleave="handleTabDragLeave($event)" @drop="handleDropOnTab($event, index)"><i v-if="sheet.id === 'root'" class="el-icon-collection"></i> <span @dblclick="renameSheet(sheet)">{{ sheet.name }}</span> <i v-if="sheet.timerEnabled" class="el-icon-timer" style="color: var(--primary-color); margin-left: 4px;" title="自动刷新中"></i></span></el-tab-pane></el-tabs><el-button size="mini" type="text" icon="el-icon-plus" style="margin-left: 10px; padding: 8px;" @click="handleSheetAdd" title="新建页签（上限5个）"></el-button></div><div v-if="activeSheetId !== 'root'" style="padding: 8px 12px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px; background: #f8fafc;"><div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px;">自动刷新:<el-switch v-model="currentSheet.timerEnabled" size="mini" @change="toggleSheetTimer(currentSheet)"></el-switch></div><div v-if="currentSheet.timerEnabled" style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px;">间隔:<el-input-number v-model="currentSheet.timerInterval" size="mini" :min="500" :max="20000" :step="1000" style="width: 100px;" @change="saveRegisterSheets(); startSheetTimer(currentSheet);"></el-input-number>ms</div><div style="flex: 1; text-align: right; font-size: 11px; color: var(--text-muted);">提示：可从“全量寄存器”拖拽条目到其他页签；双击页签重命名。</div></div><div class="register-table-container" style="flex: 1; overflow: auto; margin-top: 5px;"><table class="register-table"><thead><tr><th width="80">ID</th><th width="150">名称</th><th width="100"><el-dropdown trigger="click" @command="v => registerTypeFilter = v"><span class="el-dropdown-link" style="cursor: pointer; font-size: 12px; color: inherit;">类型<i class="el-icon-arrow-down el-icon--right"></i></span><el-dropdown-menu slot="dropdown"><el-dropdown-item command="all" :disabled="registerTypeFilter === 'all'">全部类型</el-dropdown-item><el-dropdown-item command="int" :disabled="registerTypeFilter === 'int'">数值型</el-dropdown-item><el-dropdown-item command="string" :disabled="registerTypeFilter === 'string'">字符串型</el-dropdown-item></el-dropdown-menu></el-dropdown></th><th width="100"><el-dropdown trigger="click" @command="v => registerFilter = v"><span class="el-dropdown-link" style="cursor: pointer; font-size: 12px; color: inherit;">权限<i class="el-icon-arrow-down el-icon--right"></i></span><el-dropdown-menu slot="dropdown"><el-dropdown-item command="all" :disabled="registerFilter === 'all'">全部权限</el-dropdown-item><el-dropdown-item command="read" :disabled="registerFilter === 'read'">只读</el-dropdown-item><el-dropdown-item command="write" :disabled="registerFilter === 'write'">只写</el-dropdown-item><el-dropdown-item command="readwrite" :disabled="registerFilter === 'readwrite'">读写</el-dropdown-item></el-dropdown-menu></el-dropdown></th><th width="150">当前值</th><th>新值</th><th>描述</th><th width="160">操作</th></tr></thead><tbody><tr v-for="(reg, index) in filteredRegisters" :key="reg.name" draggable="true" @dragstart="handleDragStart($event, reg, index)" @dragover.prevent="handleDragOverRow($event, index)" @dragleave="handleDragLeaveRow($event)" @drop="handleDropOnRow($event, index)" @contextmenu.prevent="showContextMenu($event, reg)" :class="{ 
+                      }"
+                      :draggable="sheet.id !== 'root'"
+                      @dragstart="handleTabDragStart($event, index)"
+                      @dragover.prevent="handleTabDragOver($event, index)"
+                      @dragleave="handleTabDragLeave($event)"
+                      @drop="handleDropOnTab($event, index)"
+                    >
+                      <i v-if="sheet.id === 'root'" class="el-icon-collection"></i>
+                      <span @dblclick="renameSheet(sheet)">{{ sheet.name }}</span>
+                      <i 
+                        v-if="sheet.timerEnabled" 
+                        class="el-icon-timer" 
+                        style="color: var(--primary-color); margin-left: 4px;"
+                        title="自动刷新中"
+                      ></i>
+                    </span>
+                  </el-tab-pane>
+                </el-tabs>
+                <el-button 
+                  size="mini" 
+                  type="text" 
+                  icon="el-icon-plus" 
+                  style="margin-left: 10px; padding: 8px;" 
+                  @click="handleSheetAdd"
+                  title="新建页签（上限5个）"
+                ></el-button>
+              </div>
+              
+              <!-- 当前 Sheet 的控制项 (仅非 root sheet 显示自动刷新开关) -->
+              <div v-if="activeSheetId !== 'root'" style="padding: 8px 12px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px; background: #f8fafc;">
+                <div style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px;">
+                  自动刷新:
+                  <el-switch
+                    v-model="currentSheet.timerEnabled"
+                    size="mini"
+                    @change="toggleSheetTimer(currentSheet)"
+                  ></el-switch>
+                </div>
+                <div v-if="currentSheet.timerEnabled" style="font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px;">
+                  间隔:
+                  <el-input-number 
+                    v-model="currentSheet.timerInterval" 
+                    size="mini" 
+                    :min="500" 
+                    :max="20000"
+                    :step="1000" 
+                    style="width: 100px;"
+                    @change="saveRegisterSheets(); startSheetTimer(currentSheet);"
+                  ></el-input-number>
+                  ms
+                </div>
+                <div style="flex: 1; text-align: right; font-size: 11px; color: var(--text-muted);">
+                  提示：可从“全量寄存器”拖拽条目到其他页签；双击页签重命名。
+                </div>
+              </div>
+
+              <div class="register-table-container" style="flex: 1; overflow: auto; margin-top: 5px;">
+                <table class="register-table">
+                  <thead>
+                    <tr>
+                      <th width="80">ID</th>
+                      <th width="150">名称</th>
+                      <th width="100">
+                        <el-dropdown trigger="click" @command="v => registerTypeFilter = v">
+                          <span class="el-dropdown-link" style="cursor: pointer; font-size: 12px; color: inherit;">
+                            类型<i class="el-icon-arrow-down el-icon--right"></i>
+                          </span>
+                          <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="all" :disabled="registerTypeFilter === 'all'">全部类型</el-dropdown-item>
+                            <el-dropdown-item command="int" :disabled="registerTypeFilter === 'int'">数值型</el-dropdown-item>
+                            <el-dropdown-item command="string" :disabled="registerTypeFilter === 'string'">字符串型</el-dropdown-item>
+                          </el-dropdown-menu>
+                        </el-dropdown>
+                      </th>
+                      <th width="100">
+                        <el-dropdown trigger="click" @command="v => registerFilter = v">
+                          <span class="el-dropdown-link" style="cursor: pointer; font-size: 12px; color: inherit;">
+                            权限<i class="el-icon-arrow-down el-icon--right"></i>
+                          </span>
+                          <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="all" :disabled="registerFilter === 'all'">全部权限</el-dropdown-item>
+                            <el-dropdown-item command="read" :disabled="registerFilter === 'read'">只读</el-dropdown-item>
+                            <el-dropdown-item command="write" :disabled="registerFilter === 'write'">只写</el-dropdown-item>
+                            <el-dropdown-item command="readwrite" :disabled="registerFilter === 'readwrite'">读写</el-dropdown-item>
+                          </el-dropdown-menu>
+                        </el-dropdown>
+                      </th>
+                      <th width="150">当前值</th>
+                      <th>新值</th>
+                      <th>描述</th>
+                      <th width="160">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr 
+                      v-for="(reg, index) in filteredRegisters" 
+                      :key="reg.name" 
+                      draggable="true"
+                      @dragstart="handleDragStart($event, reg, index)"
+                      @dragover.prevent="handleDragOverRow($event, index)"
+                      @dragleave="handleDragLeaveRow($event)"
+                      @drop="handleDropOnRow($event, index)"
+                      @contextmenu.prevent="showContextMenu($event, reg)"
+                      :class="{ 
                         'reg-modified': reg.modified, 
                         'reg-read-error': reg.readError,
                         'drag-over-row': dragOverRowIndex === index 
-                      }"><td class="reg-id">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td><td class="reg-name">{{ reg.name }}</td><td><el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">{{ reg.type === 'int' ? '数值' : '字符串' }}</el-tag></td><td><el-tag size="mini" :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">{{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}</el-tag></td><td class="reg-value" :class="{ 'text-danger': reg.readError }"><template v-if="reg.access !== 'write'">{{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}</template><span v-else class="muted">--</span></td><td class="reg-write"><div v-if="reg.access !== 'read'" class="reg-input-wrap"><input v-if="reg.type === 'int'" type="number" class="reg-input" v-model.number="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'" :min="reg.min !== null ? reg.min : undefined" :max="reg.max !== null ? reg.max : undefined"> <input v-else type="text" class="reg-input" v-model="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"></div><span v-else class="muted">只读</span></td><td class="reg-desc"><div>{{ reg.description }}</div><div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">范围: {{ reg.min }} ~ {{ reg.max }}</div></td><td class="reg-actions"><el-button v-if="reg.access !== 'write'" size="mini" icon="el-icon-refresh" :loading="reg.loading" @click="readRegister(reg)">读取</el-button><el-button v-if="reg.access !== 'read'" size="mini" type="primary" icon="el-icon-upload2" :disabled="reg.inputValue === '' || reg.inputValue === null" @click="writeRegister(reg)">写入</el-button></td></tr></tbody></table><div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;"><i class="el-icon-folder-opened"></i><p>没有匹配的寄存器</p></div></div><div class="register-stats"><span>共 {{ registers.length }} 个寄存器</span> <span>|</span> <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span> <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span> <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span></div></div></div></div></div></div></div><script>// 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
+                      }"
+                    >
+                      <td class="reg-id">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td>
+                      <td class="reg-name">{{ reg.name }}</td>
+                      <td>
+                        <el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">
+                          {{ reg.type === 'int' ? '数值' : '字符串' }}
+                        </el-tag>
+                      </td>
+                      <td>
+                        <el-tag size="mini" 
+                          :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">
+                          {{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}
+                        </el-tag>
+                      </td>
+                      <td class="reg-value" :class="{ 'text-danger': reg.readError }">
+                        <template v-if="reg.access !== 'write'">
+                          {{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}
+                        </template>
+                        <span v-else class="muted">--</span>
+                      </td>
+                      <td class="reg-write">
+                        <div v-if="reg.access !== 'read'" class="reg-input-wrap">
+                          <input 
+                            v-if="reg.type === 'int'"
+                            type="number" 
+                            class="reg-input"
+                            v-model.number="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"
+                            :min="reg.min !== null ? reg.min : undefined"
+                            :max="reg.max !== null ? reg.max : undefined"
+                          />
+                          <input 
+                            v-else
+                            type="text" 
+                            class="reg-input"
+                            v-model="reg.inputValue"
+                            @keyup.enter="writeRegister(reg)"
+                            :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"
+                          />
+                        </div>
+                        <span v-else class="muted">只读</span>
+                      </td>
+                      <td class="reg-desc">
+                        <div>{{ reg.description }}</div>
+                        <div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">
+                          范围: {{ reg.min }} ~ {{ reg.max }}
+                        </div>
+                      </td>
+                      <td class="reg-actions">
+                        <!-- 可读的显示刷新按钮 -->
+                        <el-button 
+                          v-if="reg.access !== 'write'" 
+                          size="mini" 
+                          icon="el-icon-refresh"
+                          :loading="reg.loading"
+                          @click="readRegister(reg)"
+                        >读取</el-button>
+                        <!-- 可写的显示写入按钮 -->
+                        <el-button 
+                          v-if="reg.access !== 'read'" 
+                          size="mini" 
+                          type="primary"
+                          icon="el-icon-upload2"
+                          :disabled="reg.inputValue === '' || reg.inputValue === null"
+                          @click="writeRegister(reg)"
+                        >写入</el-button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;">
+                  <i class="el-icon-folder-opened"></i>
+                  <p>没有匹配的寄存器</p>
+                </div>
+              </div>
+              
+              <!-- 寄存器统计 -->
+              <div class="register-stats">
+                <span>共 {{ registers.length }} 个寄存器</span>
+                <span>|</span>
+                <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span>
+                <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span>
+                <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
     let modelDictionary = { parameters: {}, modules: {} };
 
     // ============================================================
@@ -5209,4 +6437,7 @@ current_output_gain:0.5`
           wsClient.stopAllTimers().catch(() => {});
         }
       }
-    });</script><script src="js/chunk-vendors.83f22ba7.js"></script><script src="js/app.3152c597.js"></script></body></html>
+    });
+  </script>
+</body>
+</html>
