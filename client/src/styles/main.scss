@@ -1,0 +1,497 @@
+// ============================================
+// 电子负载参数管理系统 - 主样式文件
+// 设计风格：工业科技感 + 现代简约
+// ============================================
+
+// ---------- CSS 变量定义 ----------
+:root {
+  // 主色调 - 电气蓝
+  --primary-color: #00d4ff;
+  --primary-dark: #0099cc;
+  --primary-light: #4de5ff;
+  --primary-glow: rgba(0, 212, 255, 0.3);
+  
+  // 强调色 - 能量橙
+  --accent-color: #ff6b35;
+  --accent-dark: #e55a2b;
+  --accent-light: #ff8c5a;
+  
+  // 成功/警告/错误
+  --success-color: #00e676;
+  --warning-color: #ffab00;
+  --error-color: #ff5252;
+  
+  // 深色主题色板
+  --bg-primary: #0a0e14;
+  --bg-secondary: #0f1419;
+  --bg-tertiary: #151c24;
+  --bg-card: #1a222d;
+  --bg-elevated: #1f2937;
+  
+  // 文字颜色
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  
+  // 边框
+  --border-color: #21262d;
+  --border-light: #30363d;
+  
+  // 阴影
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px var(--primary-glow);
+  
+  // 间距
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  // 圆角
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  
+  // 字体
+  --font-sans: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  
+  // 过渡
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+  --transition-slow: 0.4s ease;
+}
+
+// 浅色主题
+.light-theme {
+  --bg-primary: #f0f4f8;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-elevated: #ffffff;
+  
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  
+  --border-color: #e2e8f0;
+  --border-light: #edf2f7;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+// ---------- 全局重置 ----------
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ---------- 应用布局 ----------
+#app {
+  height: 100%;
+}
+
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+}
+
+// ---------- 顶部导航 ----------
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 var(--spacing-lg);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  
+  .header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+  }
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      color: var(--primary-color);
+      filter: drop-shadow(0 0 8px var(--primary-glow));
+    }
+    
+    .logo-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// 主导航
+.main-nav {
+  display: flex;
+  gap: var(--spacing-xs);
+  
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    
+    i {
+      font-size: 16px;
+    }
+    
+    &:hover {
+      color: var(--text-primary);
+      background: var(--bg-tertiary);
+    }
+    
+    &.router-link-active {
+      color: var(--primary-color);
+      background: rgba(0, 212, 255, 0.1);
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 2px;
+        background: var(--primary-color);
+        border-radius: 1px;
+      }
+    }
+  }
+}
+
+// 设备状态指示
+.device-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text-muted);
+  
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--error-color);
+    animation: pulse 2s infinite;
+  }
+  
+  &.connected {
+    color: var(--success-color);
+    
+    .status-dot {
+      background: var(--success-color);
+      box-shadow: 0 0 8px var(--success-color);
+    }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// 主题切换按钮
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+    background: rgba(0, 212, 255, 0.1);
+  }
+  
+  i {
+    font-size: 18px;
+  }
+}
+
+// ---------- 主内容区域 ----------
+.app-main {
+  flex: 1;
+  overflow: auto;
+  padding: var(--spacing-lg);
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(0, 212, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255, 107, 53, 0.02) 0%, transparent 50%),
+    var(--bg-primary);
+}
+
+// ---------- 底部状态栏 ----------
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 0 var(--spacing-md);
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-muted);
+  
+  .footer-left, .footer-center, .footer-right {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .ws-status {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    .status-indicator {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--error-color);
+    }
+    
+    &.connected .status-indicator {
+      background: var(--success-color);
+    }
+  }
+  
+  .current-file {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    .unsaved-badge {
+      color: var(--warning-color);
+    }
+  }
+}
+
+// ---------- 页面过渡动画 ----------
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all var(--transition-normal);
+}
+
+.fade-slide-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+// ---------- 通用组件样式 ----------
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: var(--spacing-lg);
+  
+  .page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .page-subtitle {
+    color: var(--text-secondary);
+  }
+}
+
+// 卡片样式
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  transition: all var(--transition-normal);
+  
+  &:hover {
+    border-color: var(--border-light);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+// 参数输入组
+.param-group {
+  margin-bottom: var(--spacing-lg);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .group-title {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    
+    &::before {
+      content: '';
+      width: 3px;
+      height: 16px;
+      background: var(--primary-color);
+      border-radius: 2px;
+    }
+  }
+}
+
+// 参数行
+.param-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  
+  &:hover {
+    background: var(--bg-tertiary);
+    margin: 0 calc(var(--spacing-sm) * -1);
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+    border-radius: var(--radius-sm);
+  }
+  
+  .param-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  
+  .param-unit {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+}
+
+// ---------- Element UI 覆盖样式 ----------
+.el-input__inner {
+  background: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+  
+  &:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px var(--primary-glow) !important;
+  }
+}
+
+.el-button--primary {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+  border: none !important;
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--primary-light), var(--primary-color)) !important;
+    box-shadow: var(--shadow-glow) !important;
+  }
+}
+
+.el-select-dropdown {
+  background: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+.el-select-dropdown__item {
+  color: var(--text-primary) !important;
+  
+  &:hover {
+    background: var(--bg-tertiary) !important;
+  }
+  
+  &.selected {
+    color: var(--primary-color) !important;
+    background: rgba(0, 212, 255, 0.1) !important;
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+  
+  &:hover {
+    background: var(--text-muted);
+  }
+}
+
+
+
+

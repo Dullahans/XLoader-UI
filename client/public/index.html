@@ -2901,7 +2901,7 @@
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
           const host = window.location.hostname;
           // Python WS 固定端口
-          url = protocol + '//' + host + ':28657/ws';
+          url = `${protocol}//${host}:28657/ws`;
           }
         }
         this.url = url;
@@ -2989,7 +2989,7 @@
         }
 
         this.reconnectAttempts++;
-        console.log('[WS] 尝试重连 (' + this.reconnectAttempts + '/' + this.maxReconnectAttempts + ')...');
+        console.log(`[WS] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
         
         setTimeout(() => {
           this.connect().catch(() => {});
@@ -3027,7 +3027,7 @@
           
           // 处理响应消息
           // 兼容：cmd_id 可能返回为字符串或数字
-          const rawCmdId = message.cmd_id !== undefined ? message.cmd_id : message.id;
+          const rawCmdId = message.cmd_id ?? message.id;
           const cmdId = (rawCmdId !== undefined && rawCmdId !== null) ? String(rawCmdId) : null;
 
           if (cmdId && this.pendingRequests.has(cmdId)) {
@@ -3456,7 +3456,7 @@ current_output_gain:0.5`
         selectedLocation: '',
         isLocationRegistered: false,
         connectStatus: null, // get_connect_status 推送原始 data
-        selectedDeviceKey: '', // ip + '#' + loader_num
+        selectedDeviceKey: '', // `${ip}#${loader_num}`
         lastConnectStatusTime: 0, // 最后收到 get_connect_status 的时间戳
         connectStatusCheckTimer: null, // get_connect_status 检查定时器
         hasRequestedConnectStatus: false, // 是否已经请求过一次（避免不停请求）
@@ -3467,7 +3467,7 @@ current_output_gain:0.5`
         // OTA（socket.md 14/15）
         otaLoading: false,
         otaGroups: [],
-        otaProgress: {}, // key: ip + '#' + loader_num -> number(0-100)
+        otaProgress: {}, // key: `${ip}#${loader_num}` -> number(0-100)
         otaStatus: {},   // key -> { status, desc }
         otaUpdatingKey: '',
         otaCloudStatus: 'never', // never | ok | empty | error
@@ -3734,7 +3734,7 @@ current_output_gain:0.5`
                   params.push({
                     name,
                     id: def.id,
-                    displayName: (def.name || name) + ' (' + name + ')'
+                    displayName: `${def.name || name} (${name})`
                   });
                 }
               }
@@ -3769,9 +3769,9 @@ current_output_gain:0.5`
         },
         otaCloudStatusText() {
           if (this.otaCloudStatus === 'never') return '云端版本：未获取';
-          if (this.otaCloudStatus === 'ok') return '云端版本：已获取（' + (this.otaCloudCheckedAt || '') + '）';
-          if (this.otaCloudStatus === 'empty') return '云端版本：无新版本（' + (this.otaCloudCheckedAt || '') + '）';
-          if (this.otaCloudStatus === 'error') return '云端版本：获取失败（' + (this.otaCloudMsg || '') + '）';
+          if (this.otaCloudStatus === 'ok') return `云端版本：已获取（${this.otaCloudCheckedAt || ''}）`;
+          if (this.otaCloudStatus === 'empty') return `云端版本：无新版本（${this.otaCloudCheckedAt || ''}）`;
+          if (this.otaCloudStatus === 'error') return `云端版本：获取失败（${this.otaCloudMsg || ''}）`;
           return '云端版本：未知';
         },
         upgradeRows() {
@@ -3788,7 +3788,7 @@ current_output_gain:0.5`
             rows.push({
               ip,
               loader_num,
-              loader_name: d.loader_name || cloud.loader_name || ('loader-' + loader_num),
+              loader_name: d.loader_name || cloud.loader_name || `loader-${loader_num}`,
               sn: d.sn || cloud.sn || '',
               running_text: (this.toBool(d.running) ? '运行中' : '未运行'),
               current_version: d.version || cloud.current_version || '',
@@ -3874,7 +3874,7 @@ current_output_gain:0.5`
         fillSlot(slots, d, ip) {
           const n = Number(d.loader_num);
           if (Number.isFinite(n) && n >= 0 && n < 6) {
-            const cacheKey = String(ip) + '#' + n;
+            const cacheKey = `${String(ip)}#${n}`;
             const cached = this.deviceSignalCache && this.deviceSignalCache[cacheKey] ? this.deviceSignalCache[cacheKey] : null;
             slots[n] = {
               ...slots[n],
@@ -4073,7 +4073,7 @@ current_output_gain:0.5`
           try {
             // 使用第31条接口启动定时刷新
             wsClient.scheduleRefreshSignals(this.device_id, this.loader_num, names, period).then(() => {
-              console.log('[Sheet] 定时刷新已启动: ' + sheet.name + ', 周期: ' + period + 'ms');
+              console.log(`[Sheet] 定时刷新已启动: ${sheet.name}, 周期: ${period}ms`);
             }).catch(err => {
               console.error(`[Sheet] 启动定时刷新失败:`, err);
             });
@@ -4177,7 +4177,7 @@ current_output_gain:0.5`
             if (!targetSheet.registerNames.includes(regName)) {
               targetSheet.registerNames.push(regName);
               this.saveRegisterSheets();
-              this.$message.success('已复制到页签: ' + targetSheet.name);
+              this.$message.success(`已复制到页签: ${targetSheet.name}`);
             }
           }
         },
@@ -4200,7 +4200,7 @@ current_output_gain:0.5`
             if (!sheet.registerNames.includes(reg.name)) {
               sheet.registerNames.push(reg.name);
               this.saveRegisterSheets();
-              this.$message.success('已添加到页签: ' + sheet.name);
+              this.$message.success(`已添加到页签: ${sheet.name}`);
             } else {
               this.$message.warning('该寄存器已存在于目标页签');
             }
@@ -4322,7 +4322,7 @@ current_output_gain:0.5`
         },
         getDeviceKey(dev) {
           if (!dev) return '';
-          return String(dev.ip) + '#' + Number(dev.loader_num);
+          return `${String(dev.ip)}#${Number(dev.loader_num)}`;
         },
         isSelectedDevice(dev) {
           return this.selectedDeviceKey && this.selectedDeviceKey === this.getDeviceKey(dev);
@@ -4401,7 +4401,7 @@ current_output_gain:0.5`
               hardwareVersion: entry.hversion || this.deviceInfo.hardwareVersion || '',
               softwareVersion: entry.version || this.deviceInfo.softwareVersion || '',
               runTime: (entry.total_time !== undefined && entry.total_time !== null && String(entry.total_time) !== '')
-                ? entry.total_time + ' h'
+                ? `${entry.total_time} h`
                 : (this.deviceInfo.runTime || '')
             };
             if (entry.sn) this.deviceSN = String(entry.sn);
@@ -4446,7 +4446,7 @@ current_output_gain:0.5`
         // OTA（socket.md 14/15）
         // ===========================
         otaKey(ip, loader_num) {
-          return String(ip) + '#' + Number(loader_num);
+          return `${String(ip)}#${Number(loader_num)}`;
         },
         getOtaProgress(ip, loader_num) {
           const k = this.otaKey(ip, loader_num);
@@ -4465,7 +4465,7 @@ current_output_gain:0.5`
           const st = this.otaStatus[k];
           if (st && st.desc) return st.desc;
           const p = this.getOtaProgress(ip, loader_num);
-          if (p > 0 && p < 100) return '升级中… ' + p.toFixed(1) + '%';
+          if (p > 0 && p < 100) return `升级中… ${p.toFixed(1)}%`;
           return '—';
         },
         async checkCloudNewVersion() {
@@ -4589,7 +4589,7 @@ current_output_gain:0.5`
               }
             } catch (err) {
               this.localUpgradeLoading = false;
-              this.$message.error('文件上传失败: ' + (err.message || err) + '，请切换到"输入路径"标签页手动输入文件绝对路径');
+              this.$message.error(`文件上传失败: ${err.message || err}，请切换到"输入路径"标签页手动输入文件绝对路径`);
               this.localUpgradeTab = 'path';
               this.localUpgradePath = this.selectedHexName;
               return;
@@ -4645,7 +4645,7 @@ current_output_gain:0.5`
             this.hexFileList = [];
           } catch (err) {
             // 失败时不设置升级状态，保持原有状态
-            this.$message.error('近端升级失败: ' + (err.message || err));
+            this.$message.error(`近端升级失败: ${err.message || err}`);
             // 清除可能存在的错误状态
             if (this.otaStatus[k] && this.otaStatus[k].status === 'error') {
               this.$delete(this.otaStatus, k);
@@ -4660,7 +4660,7 @@ current_output_gain:0.5`
         // 控制台：保留历史
         pushConsole(dir, text) {
           const ts = new Date().toLocaleString();
-          this.consoleHistory.push({ ts, dir, text: String(text !== undefined && text !== null ? text : '') });
+          this.consoleHistory.push({ ts, dir, text: String(text ?? '') });
           // 控制台只保留最近 200 条
           if (this.consoleHistory.length > 200) this.consoleHistory.splice(0, this.consoleHistory.length - 200);
         },
@@ -4779,7 +4779,7 @@ current_output_gain:0.5`
             this.$message.success((payload && payload.desc) || '日志拉取成功');
             this.selectedLogPath = '';
           } catch (err) {
-            this.$message.error('拉取日志失败: ' + (err.message || err));
+            this.$message.error(`拉取日志失败: ${err.message || err}`);
           }
         },
 
@@ -5142,7 +5142,7 @@ current_output_gain:0.5`
                 });
                 
                 if (!parseResp.ok) {
-                  throw new Error('解析请求失败: ' + parseResp.status);
+                  throw new Error(`解析请求失败: ${parseResp.status}`);
                 }
                 
                 const parsed = await parseResp.json();
@@ -5160,23 +5160,23 @@ current_output_gain:0.5`
                     success: false,
                     raw: content,
                     modules: [],
-                    errors: parsed && (parsed.errors || [{ message: parsed.error || '解析失败', lineNum: 0 }]),
-                    warnings: parsed && (parsed.warnings || []),
+                    errors: parsed?.errors || [{ message: parsed?.error || '解析失败', lineNum: 0 }],
+                    warnings: parsed?.warnings || [],
                     path: model.path,
                     modified: false,
                     loading: false
                   });
-                  this.$message.warning('文件 ' + model.filename + ' 解析失败');
+                  this.$message.warning(`文件 ${model.filename} 解析失败`);
                 }
               } else {
-                throw new Error((payload && payload.desc) || '读取文件失败');
+                throw new Error(payload?.desc || '读取文件失败');
               }
             } catch (err) {
               console.error('读取文件失败:', err);
               model.loading = false;
               model.success = false;
               model.errors = [{ message: err.message || '读取失败', lineNum: 0 }];
-              this.$message.error('读取文件失败: ' + (err.message || err));
+              this.$message.error(`读取文件失败: ${err.message || err}`);
             }
           }
           
@@ -5210,7 +5210,7 @@ current_output_gain:0.5`
         getModuleDef(moduleName) { return (this.modelDictionary && this.modelDictionary.modules || {})[moduleName]; },
         getModuleDisplayName(moduleName) {
           const def = this.getModuleDef(moduleName);
-          return def ? (def.name + ' (' + moduleName + ')') : moduleName;
+          return def ? `${def.name} (${moduleName})` : moduleName;
         },
         getPrecision(paramName) {
           const def = this.getParamDef(paramName);
@@ -5315,7 +5315,7 @@ current_output_gain:0.5`
             // 更新 raw 内容
             this.currentModel.raw = content;
           } catch (err) {
-            this.$message.error('保存失败: ' + err.message);
+            this.$message.error(`保存失败: ${err.message}`);
           }
         },
         
@@ -5336,7 +5336,7 @@ current_output_gain:0.5`
             const content = this.generateBinContent();
             if (this.wsConnected) {
               await wsClient.saveAsLocalFile(value, content);
-              this.$message.success('文件已另存为 ' + value);
+              this.$message.success(`文件已另存为 ${value}`);
               // 刷新文件列表
               await this.parseAllFiles();
               // 选中新文件
@@ -5346,10 +5346,10 @@ current_output_gain:0.5`
               }
             } else {
               console.log('[模拟] 另存为:', value);
-              this.$message.success('文件已另存为 ' + value + ' (模拟)');
+              this.$message.success(`文件已另存为 ${value} (模拟)`);
             }
             this.hasModified = false;
-          } catch (e) {
+          } catch {
             // 用户取消
           }
         },
@@ -5366,7 +5366,7 @@ current_output_gain:0.5`
           
           try {
             // 创建一个带注释的空模板
-            const content = '# New Model: ' + filename + '\n# Created at: ' + new Date().toLocaleString() + '\n';
+            const content = `# New Model: ${filename}\n# Created at: ${new Date().toLocaleString()}\n`;
             
             if (this.wsConnected) {
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
@@ -5374,7 +5374,7 @@ current_output_gain:0.5`
               
               // 调用另存为接口保存到服务器本地
               await wsClient.saveAsLocalFile(path, content);
-              this.$message.success('模型文件 ' + filename + ' 创建成功');
+              this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
               
               // 刷新列表
@@ -5394,14 +5394,14 @@ current_output_gain:0.5`
                 success: true,
                 modified: false
               });
-              this.$message.success('模型文件 ' + filename + ' 创建成功 (模拟)');
+              this.$message.success(`模型文件 ${filename} 创建成功 (模拟)`);
               this.dialogNewModelVisible = false;
               // 选中新创建的文件
               const idx = this.models.findIndex(m => m.filename === filename);
               if (idx !== -1) this.activeModelIndex = idx;
             }
           } catch (err) {
-            this.$message.error('创建失败: ' + (err.message || err));
+            this.$message.error(`创建失败: ${err.message || err}`);
           }
         },
         handleOpenAddModuleDialog() {
@@ -5458,7 +5458,7 @@ current_output_gain:0.5`
           const newIdx = this.currentModel.modules.length - 1;
           this.$set(this.expandedModules, newIdx, true);
           
-          this.$message.success('已添加模块: ' + this.selectedModuleType);
+          this.$message.success(`已添加模块: ${this.selectedModuleType}`);
         },
         handleOpenAddParamDialog(moduleIndex) {
           if (!this.currentModel || !this.currentModel.modules || moduleIndex < 0) return;
@@ -5466,7 +5466,7 @@ current_output_gain:0.5`
           if (!module) return;
           
           // 检查模块是否正在运行
-          if (this.isFileRunning(this.currentModel.filename) && this.runningModule === module.name) {
+          if (this.isModuleRunning(this.currentModel.filename, module.name)) {
             this.$message.warning('该模块正在运行中，无法添加参数');
             return;
           }
@@ -5488,17 +5488,17 @@ current_output_gain:0.5`
           }
           
           // 获取参数定义
-          const pDef = (this.modelDictionary && this.modelDictionary.parameters || {})[this.selectedParamName];
+          const pDef = this.modelDictionary.parameters[this.selectedParamName];
           if (!pDef) {
             this.$message.error('参数定义不存在');
             return;
           }
           
           // 检查模块是否允许此参数
-          const modDef = (this.modelDictionary && this.modelDictionary.modules || {})[module.name];
+          const modDef = this.modelDictionary.modules[module.name];
           if (modDef && modDef.allowed_param_ids && pDef.id) {
             if (!modDef.allowed_param_ids.includes(pDef.id)) {
-              this.$message.error('模块 ' + module.name + ' 不允许使用参数 ' + this.selectedParamName + ' (ID: ' + pDef.id + ')');
+              this.$message.error(`模块 ${module.name} 不允许使用参数 ${this.selectedParamName} (ID: ${pDef.id})`);
               return;
             }
           }
@@ -5527,7 +5527,7 @@ current_output_gain:0.5`
           this.hasModified = true;
           this.dialogAddParamVisible = false;
           
-          this.$message.success('已添加参数: ' + this.selectedParamName);
+          this.$message.success(`已添加参数: ${this.selectedParamName}`);
         },
         handleRemoveParam(moduleIndex, paramIndex) {
           if (!this.currentModel || !this.currentModel.modules || moduleIndex < 0) return;
@@ -5535,21 +5535,21 @@ current_output_gain:0.5`
           if (!module || !module.params || paramIndex < 0 || paramIndex >= module.params.length) return;
           
           // 检查模块是否正在运行
-          if (this.isFileRunning(this.currentModel.filename) && this.runningModule === module.name) {
+          if (this.isModuleRunning(this.currentModel.filename, module.name)) {
             this.$message.warning('该模块正在运行中，无法删除参数');
             return;
           }
           
           const param = module.params[paramIndex];
           
-          this.$confirm('确定要从模块 ' + module.name + ' 中移除参数 ' + param.name + ' 吗？', '移除参数', {
+          this.$confirm(`确定要从模块 ${module.name} 中移除参数 ${param.name} 吗？`, '移除参数', {
             confirmButtonText: '移除',
             cancelButtonText: '取消',
             type: 'info'
           }).then(() => {
             module.params.splice(paramIndex, 1);
             this.hasModified = true;
-            this.$message.success('已移除参数: ' + param.name);
+            this.$message.success(`已移除参数: ${param.name}`);
           }).catch(() => {});
         },
         async handleDeleteModel(model, index) {
@@ -5559,7 +5559,7 @@ current_output_gain:0.5`
             return;
           }
           try {
-            await this.$confirm('确定要删除模型文件 ' + model.filename + ' 吗？此操作不可恢复。', '确认删除', {
+            await this.$confirm(`确定要删除模型文件 ${model.filename} 吗？此操作不可恢复。`, '确认删除', {
               confirmButtonText: '删除',
               cancelButtonText: '取消',
               type: 'warning'
@@ -5579,7 +5579,7 @@ current_output_gain:0.5`
             }
           } catch (err) {
             if (err !== 'cancel') {
-              this.$message.error('删除失败: ' + (err.message || err));
+              this.$message.error(`删除失败: ${err.message}`);
             }
           }
         },
@@ -5588,19 +5588,19 @@ current_output_gain:0.5`
           const mod = this.currentModel.modules[index];
           
           // 安全限制：如果该模块正在运行，则不能移除
-          if (this.isFileRunning(this.currentModel.filename) && this.runningModule === mod.name) {
+          if (this.isModuleRunning(this.currentModel.filename, mod.name)) {
             this.$message.error('该模块正在运行中，无法移除');
             return;
           }
 
-          this.$confirm('确定要从模型中移除模块 ' + mod.name + ' 吗？', '移除模块', {
+          this.$confirm(`确定要从模型中移除模块 ${mod.name} 吗？`, '移除模块', {
             confirmButtonText: '移除',
             cancelButtonText: '取消',
             type: 'info'
           }).then(() => {
             this.currentModel.modules.splice(index, 1);
             this.hasModified = true;
-            this.$message.success('已移除模块: ' + mod.name);
+            this.$message.success(`已移除模块: ${mod.name}`);
           }).catch(() => {});
         },
         
@@ -5621,7 +5621,7 @@ current_output_gain:0.5`
               this.$message.success('参数已应用到设备 (模拟)');
             }
           } catch (err) {
-            this.$message.error('应用失败: ' + err.message);
+            this.$message.error(`应用失败: ${err.message}`);
           }
         },
         
@@ -5641,7 +5641,7 @@ current_output_gain:0.5`
               this.$message.success('已上传到云端 (模拟)');
             }
           } catch (err) {
-            this.$message.error('上传失败: ' + err.message);
+            this.$message.error(`上传失败: ${err.message}`);
           }
         },
         
@@ -5655,13 +5655,13 @@ current_output_gain:0.5`
               const data = await wsClient.getCloudFileList(this.deviceSN);
               console.log('云端文件列表:', data.files);
               // TODO: 显示文件列表对话框
-              this.$message.success('获取到 ' + data.files.length + ' 个云端文件');
+              this.$message.success(`获取到 ${data.files.length} 个云端文件`);
             } else {
               console.log('[模拟] 获取云端文件列表');
               this.$message.info('云端文件列表 (模拟)');
             }
           } catch (err) {
-            this.$message.error('获取失败: ' + err.message);
+            this.$message.error(`获取失败: ${err.message}`);
           }
         },
         
@@ -5698,7 +5698,7 @@ current_output_gain:0.5`
             }
           } catch (err) {
             if (err !== 'cancel') {
-              this.$message.error('获取失败: ' + err.message);
+              this.$message.error(`获取失败: ${err.message}`);
             }
           }
         },
@@ -5758,7 +5758,7 @@ current_output_gain:0.5`
                 
                 // 如果值为空或null，且重试次数小于3次，则重试
                 if ((value === '' || value === 'null' || value === 'Null' || value === 'NULL') && retryCount < 3) {
-                  console.log('[Register] ' + reg.name + ' 读取值为空，重试 ' + (retryCount + 1) + '/3');
+                  console.log(`[Register] ${reg.name} 读取值为空，重试 ${retryCount + 1}/3`);
                   reg.loading = false;
                   await new Promise(resolve => setTimeout(resolve, 300)); // 等待300ms后重试
                   return this.readRegister(reg, retryCount + 1);
@@ -5767,28 +5767,28 @@ current_output_gain:0.5`
                 reg.value = value;
                 reg.readError = false;
                 if (retryCount === 0) {
-                  this.$message.success('寄存器 ' + reg.name + ' 读取成功');
+                  this.$message.success(`寄存器 ${reg.name} 读取成功`);
                 } else {
-                  this.$message.success('寄存器 ' + reg.name + ' 读取成功（重试' + retryCount + '次）');
+                  this.$message.success(`寄存器 ${reg.name} 读取成功（重试${retryCount}次）`);
                 }
               } else {
                 throw new Error(payload && payload.desc ? String(payload.desc) : '读取失败');
               }
             } else {
               // 模拟模式
-              console.log('[模拟] 读取寄存器 ' + reg.name);
+              console.log(`[模拟] 读取寄存器 ${reg.name}`);
               if (reg.type === 'int') {
                 reg.value = Math.floor(Math.random() * 10000);
               } else {
                 reg.value = reg.value || 'sample_string';
               }
               reg.readError = false;
-              this.$message.success('寄存器 ' + reg.name + ' 读取成功 (模拟)');
+              this.$message.success(`寄存器 ${reg.name} 读取成功 (模拟)`);
             }
           } catch (err) {
             // 如果失败且重试次数小于3次，则重试
             if (retryCount < 3) {
-              console.log('[Register] ' + reg.name + ' 读取失败，重试 ' + (retryCount + 1) + '/3: ' + err.message);
+              console.log(`[Register] ${reg.name} 读取失败，重试 ${retryCount + 1}/3:`, err.message);
               reg.loading = false;
               await new Promise(resolve => setTimeout(resolve, 300)); // 等待300ms后重试
               return this.readRegister(reg, retryCount + 1);
@@ -5796,7 +5796,7 @@ current_output_gain:0.5`
             // 读取失败：把值标记为"异常值"，并在 UI 上高亮区分
             reg.value = '读取失败';
             reg.readError = true;
-            this.$message.error('读取失败: ' + err.message);
+            this.$message.error(`读取失败: ${err.message}`);
           } finally {
             reg.loading = false;
           }
@@ -5851,7 +5851,7 @@ current_output_gain:0.5`
                   }
                 }
               } catch (readErr) {
-                console.warn('[Register] 写入后读取实际值失败:', readErr);
+                console.warn(`[Register] 写入后读取实际值失败:`, readErr);
                 // 如果读取失败，仍然使用输入值（作为fallback）
                 if (reg.access === 'readwrite') {
                   reg.value = writeValue;
@@ -5859,7 +5859,7 @@ current_output_gain:0.5`
               }
             } else {
               // 模拟模式
-              console.log('[模拟] 写入寄存器 0x' + reg.address.toString(16).toUpperCase() + ' = ' + writeValue);
+              console.log(`[模拟] 写入寄存器 0x${reg.address.toString(16).toUpperCase()} = ${writeValue}`);
               if (reg.access === 'readwrite') {
                 reg.value = writeValue;
               }
@@ -5868,12 +5868,12 @@ current_output_gain:0.5`
             reg.inputValue = null;
             reg.modified = true;
             
-            this.$message.success('寄存器 ' + reg.name + ' 写入成功');
+            this.$message.success(`寄存器 ${reg.name} 写入成功`);
             
             // 3秒后取消高亮
             setTimeout(() => { reg.modified = false; }, 3000);
           } catch (err) {
-            this.$message.error('写入失败: ' + err.message);
+            this.$message.error(`写入失败: ${err.message}`);
           }
         },
         
@@ -5945,7 +5945,7 @@ current_output_gain:0.5`
               }
               
               if (list.length > 0) {
-                this.$message.success('已刷新 ' + returned.size + '/' + readableRegs.length + ' 个寄存器');
+                this.$message.success(`已刷新 ${returned.size}/${readableRegs.length} 个寄存器`);
               } else {
                 this.$message.warning('未获取到寄存器数据，请检查设备连接');
               }
@@ -5963,7 +5963,7 @@ current_output_gain:0.5`
               this.$message.success('所有寄存器已刷新 (模拟)');
             }
           } catch (err) {
-            this.$message.error('刷新失败: ' + err.message);
+            this.$message.error(`刷新失败: ${err.message}`);
             for (const reg of readableRegs) {
               reg.loading = false;
               reg.value = '读取失败';
@@ -6025,7 +6025,7 @@ current_output_gain:0.5`
             
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
             if (payload && payload.ret === false) throw new Error(payload.desc || 'load_model failed');
-            this.$message.success((payload && payload.desc) || ('已发送导入请求（' + (allDevices ? '所有设备' : '当前设备') + '）'));
+            this.$message.success((payload && payload.desc) || `已发送导入请求（${allDevices ? '所有设备' : '当前设备'}）`);
             this.dialogImportDeviceVisible = false;
           } catch (err) {
             this.$message.error('导入失败: ' + (err.message || err));
@@ -6071,17 +6071,17 @@ current_output_gain:0.5`
           if (!this.currentModel || !this.currentModel.modules) return '';
           let content = '';
           for (const mod of this.currentModel.modules) {
-            content += mod.name + '\n';
+            content += `${mod.name}\n`;
             for (const param of mod.params) {
               if (param.type === 'matrix') {
-                content += param.name + ':\n';
+                content += `${param.name}:\n`;
                 for (const row of param.value) {
-                  content += '    ' + row.join(' ') + '\n';
+                  content += `    ${row.join(' ')}\n`;
                 }
               } else if (param.type === 'array') {
-                content += param.name + ':' + param.value.join(' ') + '\n';
+                content += `${param.name}:${param.value.join(' ')}\n`;
               } else {
-                content += param.name + ':' + param.value + '\n';
+                content += `${param.name}:${param.value}\n`;
               }
             }
             content += '\n';
@@ -6190,7 +6190,7 @@ current_output_gain:0.5`
                     if (d && d.ip !== undefined && d.loader_num !== undefined) {
                       self.device_id = String(d.ip);
                       self.loader_num = Number(d.loader_num);
-                      self.selectedDeviceKey = String(d.ip) + '#' + Number(d.loader_num);
+                      self.selectedDeviceKey = `${String(d.ip)}#${Number(d.loader_num)}`;
                       found = true;
                       break;
                     }
@@ -6198,7 +6198,7 @@ current_output_gain:0.5`
                     // 兼容旧格式推送
                     self.device_id = String(cab.ip);
                     self.loader_num = Number(cab.loader_num);
-                    self.selectedDeviceKey = String(cab.ip) + '#' + Number(cab.loader_num);
+                    self.selectedDeviceKey = `${String(cab.ip)}#${Number(cab.loader_num)}`;
                     found = true;
                     break;
                   }
@@ -6234,7 +6234,7 @@ current_output_gain:0.5`
               if (ip === undefined || loader_num === undefined) return;
               const k = self.otaKey(ip, loader_num);
               if (Number.isFinite(p)) self.$set(self.otaProgress, k, p);
-              self.$set(self.otaStatus, k, { status: 'running', desc: '升级中… ' + (Number.isFinite(p) ? p.toFixed(1) : '') + '%' });
+              self.$set(self.otaStatus, k, { status: 'running', desc: `升级中… ${Number.isFinite(p) ? p.toFixed(1) : ''}%` });
             } catch (e) {}
           });
 

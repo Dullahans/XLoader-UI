@@ -104,8 +104,8 @@ export default {
 }
 </script>
 
-<style lang="less">
-// 重置样式和CSS变量定义在 main.less 中
+<style lang="scss">
+// 重置样式和CSS变量定义在 main.scss 中
 </style>
 
 

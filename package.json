@@ -28,11 +28,7 @@
     "parameter-management"
   ],
   "author": "",
-  "license": "MIT",
-  "engines": {
-    "node": "12.16.3",
-    "npm": "10.9.0"
-  }
+  "license": "MIT"
 }
 
 

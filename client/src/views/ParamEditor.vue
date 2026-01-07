@@ -235,7 +235,7 @@ export default {
       // 根据schema初始化参数
       this.paramGroups.forEach(group => {
         group.params.forEach(param => {
-          this.editParams[param.key] = params[param.key] !== undefined && params[param.key] !== null ? params[param.key] : param.default
+          this.editParams[param.key] = params[param.key] ?? param.default
         })
       })
     },
@@ -294,7 +294,7 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .param-editor-page {
   height: calc(100vh - 56px - 28px - var(--spacing-lg) * 2);
   display: flex;

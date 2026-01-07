@@ -492,7 +492,7 @@ async function getRegisterDefinitions() {
 
     const normalized = defs
       .map((d) => {
-        const address = normalizeAddress(d.address !== undefined ? d.address : d.id);
+        const address = normalizeAddress(d.address ?? d.id);
         return {
           address,
           name: d.name,

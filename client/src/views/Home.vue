@@ -168,7 +168,7 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .home-page {
   animation: fadeIn 0.5s ease;
 }

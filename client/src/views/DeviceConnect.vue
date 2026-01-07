@@ -349,7 +349,7 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .device-page {
   .page-header {
     margin-bottom: var(--spacing-lg);

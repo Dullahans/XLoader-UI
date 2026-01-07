@@ -296,7 +296,7 @@ export default {
 }
 </script>
 
-<style lang="less" scoped>
+<style lang="scss" scoped>
 .file-manager-page {
   .page-header {
     display: flex;
