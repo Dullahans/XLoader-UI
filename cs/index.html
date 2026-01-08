@@ -3455,9 +3455,18 @@ current_output_gain:0.5`
         normalizeTree(node) {
           if (!node) return null;
           if (Array.isArray(node)) return node.map(n => this.normalizeTree(n)).filter(Boolean);
+          
           const label = node.label !== undefined ? String(node.label) : (node.name !== undefined ? String(node.name) : '');
-          const children = Array.isArray(node.children) ? node.children : [];
-          return { label, children: children.map(c => this.normalizeTree(c)).filter(Boolean) };
+          
+          // 根据最新的 socket.md，子节点可能在 children 或 desc 字段中
+          let rawChildren = [];
+          if (Array.isArray(node.children)) {
+            rawChildren = node.children;
+          } else if (Array.isArray(node.desc)) {
+            rawChildren = node.desc;
+          }
+
+          return { label, children: rawChildren.map(c => this.normalizeTree(c)).filter(Boolean) };
         },
         findNodeByLabel(nodes, label) {
           const list = Array.isArray(nodes) ? nodes : [];
@@ -3474,8 +3483,15 @@ current_output_gain:0.5`
           if (!this.wsConnected) return [];
           const resp = await wsClient.getFileInfo(this.device_id, this.loader_num, '');
           const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+          
           const norm = this.normalizeTree(payload);
           if (Array.isArray(norm)) return norm;
+          
+          // 特殊处理：如果根节点没有 label 但有 children（说明 payload 是个包装对象），则返回其 children
+          if (norm && !norm.label && norm.children && norm.children.length) {
+            return norm.children;
+          }
+          
           if (norm && (norm.label || (norm.children && norm.children.length))) return [norm];
           return [];
         },
@@ -3497,34 +3513,28 @@ current_output_gain:0.5`
         async loadLogTree() {
           this.logTreeLoading = true;
           try {
-            // 获取文件树
             const roots = await this.loadFileTreeRoot();
-            console.log('[Log] roots:', roots);
+            console.log('[Log] roots parsed:', roots);
             
-            let children = [];
-            // 如果返回的是数组，直接在其中找 log
-            if (Array.isArray(roots)) {
-              children = roots;
-            } else if (roots && roots.children) {
-              // 如果返回的是单个对象，取其 children
-              children = roots.children;
-            }
-
-            // 递归查找名为 log 的节点
-            const logNode = this.findNodeByLabel(children, 'log');
-            if (logNode && logNode.children) {
-              // 只展示文件，过滤掉子目录
-              this.logTreeData = logNode.children.filter(n => !n.children || n.children.length === 0);
+            // 递归查找名为 'log' 的节点
+            const logNode = this.findNodeByLabel(roots, 'log');
+            
+            if (logNode && logNode.children && logNode.children.length > 0) {
+              // 提取该目录下的所有文件（label 不为空且没有子节点）
+              this.logTreeData = logNode.children.filter(n => n.label && (!n.children || n.children.length === 0));
+              console.log('[Log] Found log files:', this.logTreeData);
             } else {
-              // fallback：如果树里没找到，尝试直接请求 get_file_info(name='log')
+              console.warn('[Log] No log folder or empty log folder found in tree');
+              // fallback: 尝试直接查询 log 目录
               const resp = await wsClient.getFileInfo(this.device_id, this.loader_num, 'log');
               const payload = (resp && resp.data !== undefined) ? resp.data : resp;
               const norm = this.normalizeTree(payload);
-              const files = Array.isArray(norm) ? norm : (norm && norm.children ? norm.children : []);
-              this.logTreeData = files.filter(n => n && n.label && (!n.children || n.children.length === 0));
+              // 如果 norm 本身就是 log 节点或其内容
+              const logData = Array.isArray(norm) ? norm : (norm && norm.children ? norm.children : []);
+              this.logTreeData = logData.filter(n => n.label && (!n.children || n.children.length === 0));
             }
           } catch (err) {
-            console.error('[Log] loadLogTree error:', err);
+            console.error('[Log] Failed to load log tree:', err);
             this.logTreeData = [];
           } finally {
             this.logTreeLoading = false;
