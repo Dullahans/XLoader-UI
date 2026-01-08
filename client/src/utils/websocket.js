@@ -283,6 +283,7 @@ class WSClient {
   deleteLocalFile(path) { return this.request('delete_local_file', { path }); }
   loaderOta(device_id, loader_num, path) { return this.request('loader_ota', { device_id, loader_num, path }); }
   pullFile(device_id, loader_num, path) { return this.request('pull_file', { device_id, loader_num, path }); }
+  pullLoaderLog(device_id, loader_num, path) { return this.request('pull_loader_log', { device_id, loader_num, path }); }
   getFileInfo(device_id, loader_num, name = '') { return this.request('get_file_info', { device_id, loader_num, name }); }
   checkLoadersNewVersion() { return this.request('check_loaders_new_version', {}); }
   updateOneLoader(device_id, loader_num) { return this.request('update_one_loader', { device_id, loader_num }); }

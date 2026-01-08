@@ -191,21 +191,41 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
 请求
 {
     "name":"get_file_info",
-    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0\"name\":\"}"
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0}"
 }
 响应
 {
-    "label":"project1",
-    children:[
-        {
-            "label":"Window",
+    "topic":"LOADER",
+    "name":"get_file_info",
+    "cmd_id":"17677...",
+    "data"{
+          "ret":true,
+          "desc":[
+            {
+                "label":"F3",
+                "children":[
+                        {
+                            "label":"Window",
+                            "children":[
+                                {"label":"current1.bin"},
+                                {"label":"current2.bin"}
+                            ]
+                        }]
+            },{
+                "label":"model",
+                "children":[
+                    {"label":"SEF3.bin"},
+                    {"label":"SEF1L.bin"},
+                ]
+            },{
+            "label":"log",
             "children":[
-                {"label":"current1.bin"},
-                {"label":"current2.bin"}
-            ]
-        },
-        ...
-    ]
+                {"label":"test1.log"},
+                {"label":"test2.log"}
+          ]}
+]
+
+    }
 }
 
 10.上位机工程跟目录下resource/loader目录结构读取
@@ -605,13 +625,13 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
 请求
 {
     ...
-    "name":"pull_file",
+    "name":"pull_loader_log",
     "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"path\":\"文件路径\"}"
 }
 响应
 {
     ...
-    "name":"pull_file",
+    "name":"pull_loader_log",
     "data":{
         "ret":true,
         "desc":"pull file log/PT001.log successs"

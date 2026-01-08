@@ -112,6 +112,99 @@
           </el-table>
         </div>
       </el-tab-pane>
+    <el-tabs v-model="activeTab" class="file-tabs">
+      <!-- 参数文件列表 -->
+      <el-tab-pane label="参数文件" name="files">
+        <div class="file-grid" v-loading="loading.files">
+          <div 
+            v-for="file in fileList" 
+            :key="file.name"
+            class="file-card"
+            :class="{ selected: selectedFiles.includes(file.name) }"
+          >
+            <div class="file-checkbox">
+              <el-checkbox 
+                :value="selectedFiles.includes(file.name)"
+                @change="toggleSelect(file.name)"
+              />
+            </div>
+            <div class="file-icon">
+              <i class="el-icon-document"></i>
+            </div>
+            <div class="file-info">
+              <h4 class="file-name" :title="file.name">{{ file.name }}</h4>
+              <div class="file-meta">
+                <span class="file-size">{{ formatSize(file.size) }}</span>
+                <span class="file-date">{{ formatDate(file.modified) }}</span>
+              </div>
+            </div>
+            <div class="file-actions">
+              <el-tooltip content="编辑参数" placement="top">
+                <el-button type="text" icon="el-icon-edit" @click="editFile(file.name)" />
+              </el-tooltip>
+              <el-tooltip content="下载" placement="top">
+                <el-button type="text" icon="el-icon-download" @click="downloadFile(file.name)" />
+              </el-tooltip>
+              <el-dropdown trigger="click" @command="handleFileCommand($event, file.name)">
+                <el-button type="text" icon="el-icon-more" />
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="rename" icon="el-icon-edit-outline">重命名</el-dropdown-item>
+                  <el-dropdown-item command="duplicate" icon="el-icon-document-copy">复制</el-dropdown-item>
+                  <el-dropdown-item command="delete" icon="el-icon-delete" divided>删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </div>
+          </div>
+          
+          <!-- 空状态 -->
+          <div v-if="fileList.length === 0" class="empty-state">
+            <i class="el-icon-folder-add"></i>
+            <p>暂无参数文件</p>
+            <p class="empty-hint">上传.bin文件或从设备同步</p>
+          </div>
+        </div>
+        
+        <!-- 批量操作栏 -->
+        <div v-if="selectedFiles.length > 0" class="batch-actions">
+          <span class="selected-count">已选择 {{ selectedFiles.length }} 个文件</span>
+          <el-button size="small" @click="selectedFiles = []">取消选择</el-button>
+          <el-button size="small" type="danger" @click="batchDelete">批量删除</el-button>
+        </div>
+      </el-tab-pane>
+      
+      <!-- 备份文件列表 -->
+      <el-tab-pane label="备份文件" name="backups">
+        <div class="backup-list">
+          <el-table :data="backupList" style="width: 100%" empty-text="暂无备份">
+            <el-table-column prop="name" label="文件名" min-width="200">
+              <template slot-scope="{ row }">
+                <i class="el-icon-time" style="color: var(--text-muted); margin-right: 8px;"></i>
+                {{ row.name }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="size" label="大小" width="100">
+              <template slot-scope="{ row }">
+                {{ formatSize(row.size) }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="created" label="创建时间" width="180">
+              <template slot-scope="{ row }">
+                {{ formatDate(row.created) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="150" fixed="right">
+              <template slot-scope="{ row }">
+                <el-button type="text" size="small" @click="restoreBackup(row.name)">
+                  恢复
+                </el-button>
+                <el-button type="text" size="small" @click="downloadBackup(row.name)">
+                  下载
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </el-tab-pane>
     </el-tabs>
   </div>
 </template>

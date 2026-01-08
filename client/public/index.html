@@ -1849,33 +1849,41 @@
             </span>
           </el-dialog>
 
-          <!-- 工具弹窗：日志拉取（占位） -->
           <el-dialog
             title="日志拉取"
             :visible.sync="dialogLogVisible"
-            width="560px"
+            width="600px"
           >
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
               <div style="color: var(--text-muted); font-size: 12px;">
-                设备文件根目录下的 log 文件夹会在这里展示。
+                设备文件根目录下的 log 文件夹文件列表：
               </div>
               <el-button size="mini" icon="el-icon-refresh" @click="loadLogTree" :loading="logTreeLoading" :disabled="!wsConnected">刷新</el-button>
             </div>
-            <el-tree
-              v-if="logTreeData && logTreeData.length"
-              :data="logTreeData"
-              node-key="label"
-              :props="{ label: 'label', children: 'children' }"
-              :default-expand-all="true"
-              accordion
-              @node-click="handleLogNodeClick"
-            ></el-tree>
-            <div v-else style="color: var(--text-muted); font-size: 12px;">
+            
+            <div v-if="logTreeData && logTreeData.length" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px;">
+              <el-table :data="logTreeData" size="mini" :show-header="false">
+                <el-table-column>
+                  <template slot-scope="scope">
+                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                      <span>
+                        <i class="el-icon-document" style="margin-right: 8px; color: var(--text-muted);"></i>
+                        {{ scope.row.label }}
+                      </span>
+                      <div>
+                        <el-button type="text" size="mini" icon="el-icon-download" @click="handlePullLog(scope.row)">下载</el-button>
+                        <el-button type="text" size="mini" icon="el-icon-delete" style="color: #F56C6C;" @click="handleDeleteLog(scope.row)">删除</el-button>
+                      </div>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+            <div v-else style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
               {{ wsConnected ? (logTreeLoading ? '加载中…' : '暂无日志目录/文件') : 'WebSocket 未连接' }}
             </div>
             <span slot="footer" class="dialog-footer">
               <el-button size="mini" @click="dialogLogVisible = false">关闭</el-button>
-              <el-button size="mini" type="primary" @click="confirmPullLog" :disabled="!selectedLogPath">拉取选中日志</el-button>
             </span>
           </el-dialog>
 
@@ -3333,14 +3341,19 @@
         return this.request('delete_local_file', { path });
       }
 
+      // --- 删除设备文件（del_file） ---
+      delFile(device_id, loader_num, path) {
+        return this.request('del_file', { device_id, loader_num, path });
+      }
+
       // --- 29 OTA近端升级（loader_ota） ---
       loaderOta(device_id, loader_num, path) {
         return this.request('loader_ota', { device_id, loader_num, path });
       }
 
-      // --- 30 文件拉取（pull_file） ---
-      pullFile(device_id, loader_num, path) {
-        return this.request('pull_file', { device_id, loader_num, path });
+      // --- 30 文件拉取（pull_loader_log） ---
+      pullLoaderLog(device_id, loader_num, path) {
+        return this.request('pull_loader_log', { device_id, loader_num, path });
       }
 
       // --- 文件操作（非 socket.md 标准，供 Python FastAPI 后端使用） ---
@@ -4683,16 +4696,26 @@ current_output_gain:0.5`
         normalizeTree(node) {
           if (!node) return null;
           if (Array.isArray(node)) return node.map(n => this.normalizeTree(n)).filter(Boolean);
+          
           const label = node.label !== undefined ? String(node.label) : (node.name !== undefined ? String(node.name) : '');
-          const children = Array.isArray(node.children) ? node.children : [];
-          return { label, children: children.map(c => this.normalizeTree(c)).filter(Boolean) };
+          
+          // 根据最新的 socket.md，子节点可能在 children 或 desc 字段中
+          let rawChildren = [];
+          if (Array.isArray(node.children)) {
+            rawChildren = node.children;
+          } else if (Array.isArray(node.desc)) {
+            rawChildren = node.desc;
+          }
+
+          return { label, children: rawChildren.map(c => this.normalizeTree(c)).filter(Boolean) };
         },
         findNodeByLabel(nodes, label) {
           const list = Array.isArray(nodes) ? nodes : [];
+          const target = String(label).toLowerCase();
           for (const n of list) {
             if (!n) continue;
-            if (String(n.label) === String(label)) return n;
-            const hit = this.findNodeByLabel(n.children, label);
+            if (n.label && String(n.label).toLowerCase() === target) return n;
+            const hit = this.findNodeByLabel(n.children, target);
             if (hit) return hit;
           }
           return null;
@@ -4701,8 +4724,15 @@ current_output_gain:0.5`
           if (!this.wsConnected) return [];
           const resp = await wsClient.getFileInfo(this.device_id, this.loader_num, '');
           const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+          
           const norm = this.normalizeTree(payload);
           if (Array.isArray(norm)) return norm;
+          
+          // 特殊处理：如果根节点没有 label 但有 children（说明 payload 是个包装对象），则返回其 children
+          if (norm && !norm.label && norm.children && norm.children.length) {
+            return norm.children;
+          }
+          
           if (norm && (norm.label || (norm.children && norm.children.length))) return [norm];
           return [];
         },
@@ -4725,64 +4755,71 @@ current_output_gain:0.5`
           this.logTreeLoading = true;
           try {
             const roots = await this.loadFileTreeRoot();
-            const root = roots[0] || null;
-            const children = root && Array.isArray(root.children) ? root.children : roots;
-            const logNode = this.findNodeByLabel(children || [], 'log');
-            if (logNode) this.logTreeData = logNode.children || [];
-            else {
-              // fallback：有些服务端可能要求 name='log'
+            console.log('[Log] roots parsed:', roots);
+            
+            // 递归查找名为 'log' 的节点
+            const logNode = this.findNodeByLabel(roots, 'log');
+            
+            if (logNode && logNode.children && logNode.children.length > 0) {
+              // 提取该目录下的所有文件（label 不为空且没有子节点）
+              this.logTreeData = logNode.children.filter(n => n.label && (!n.children || n.children.length === 0));
+              console.log('[Log] Found log files:', this.logTreeData);
+            } else {
+              console.warn('[Log] No log folder or empty log folder found in tree');
+              // fallback: 尝试直接查询 log 目录
               const resp = await wsClient.getFileInfo(this.device_id, this.loader_num, 'log');
               const payload = (resp && resp.data !== undefined) ? resp.data : resp;
               const norm = this.normalizeTree(payload);
-              this.logTreeData = Array.isArray(norm) ? norm : (norm && norm.children ? norm.children : []);
+              // 如果 norm 本身就是 log 节点或其内容
+              const logData = Array.isArray(norm) ? norm : (norm && norm.children ? norm.children : []);
+              this.logTreeData = logData.filter(n => n.label && (!n.children || n.children.length === 0));
             }
           } catch (err) {
+            console.error('[Log] Failed to load log tree:', err);
             this.logTreeData = [];
           } finally {
             this.logTreeLoading = false;
           }
         },
-        handleLogNodeClick(data, node) {
-          // 只选择文件节点（叶子节点），不选择目录
-          if (!node.isLeaf) {
-            this.selectedLogPath = '';
-            return;
-          }
-          // 构建完整路径：log/文件名
-          const path = this.buildLogPath(node);
-          this.selectedLogPath = path;
-        },
-        buildLogPath(node) {
-          // 从根节点到当前节点的路径
-          const pathParts = [];
-          let current = node;
-          while (current) {
-            if (current.label) {
-              pathParts.unshift(current.label);
-            }
-            current = current.parent;
-          }
-          return pathParts.join('/');
-        },
-        async confirmPullLog() {
-          if (!this.selectedLogPath) {
-            this.$message.warning('请先选择一个日志文件');
-            return;
-          }
-          
+        async handlePullLog(row) {
+          if (!row || !row.label) return;
+          const path = `log/${row.label}`;
           try {
-            const resp = await wsClient.pullFile(this.device_id, this.loader_num, this.selectedLogPath);
+            this.$message.info(`正在拉取日志: ${row.label}...`);
+            // 根据 socket.md 30，使用 pull_loader_log
+            const resp = await wsClient.pullLoaderLog(this.device_id, this.loader_num, path);
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
-            if (payload && payload.ret === false) {
-              throw new Error(payload.desc || '拉取日志失败');
+            if (payload && (payload.ret === false || payload.success === false)) {
+              throw new Error(payload.desc || payload.msg || '拉取失败');
             }
-            this.$message.success((payload && payload.desc) || '日志拉取成功');
-            this.selectedLogPath = '';
+            this.$message.success((payload && (payload.desc || payload.msg)) || '日志拉取成功');
           } catch (err) {
             this.$message.error(`拉取日志失败: ${err.message || err}`);
           }
         },
+        async handleDeleteLog(row) {
+          if (!row || !row.label) return;
+          const path = `log/${row.label}`;
+          try {
+            await this.$confirm(`确定要从设备上删除日志文件 "${row.label}" 吗？`, '删除确认', {
+              confirmButtonText: '删除',
+              cancelButtonText: '取消',
+              type: 'warning'
+            });
 
+            const resp = await wsClient.delFile(this.device_id, this.loader_num, path);
+            const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+            if (payload && (payload.ret === false || payload.success === false)) {
+              throw new Error(payload.desc || payload.msg || '删除失败');
+            }
+            this.$message.success('日志删除成功');
+            this.loadLogTree(); // 刷新列表
+          } catch (err) {
+            if (err !== 'cancel') {
+              this.$message.error(`删除失败: ${err.message || err}`);
+            }
+          }
+        },
         async loadDeviceSpecsConfig() {
           try {
             const resp = await fetch('device_specs.json');

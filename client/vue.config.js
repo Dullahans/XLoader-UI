@@ -3,6 +3,10 @@ const path = require('path')
 
 module.exports = defineConfig({
   transpileDependencies: true,
+  // Node v12.16.3 does not support the ESM requirements of ESLint 8.
+  // We disable lintOnSave to allow the development server to start.
+  // Strongly recommended: Upgrade Node.js to v16 or v18 for full compatibility.
+  lintOnSave: false,
   // 让打包后的静态资源可被任意 Python 服务器用静态目录方式托管（不依赖固定域名/路径）
   publicPath: './',
   devServer: {
