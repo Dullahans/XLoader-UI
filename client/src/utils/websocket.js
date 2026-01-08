@@ -274,8 +274,8 @@ class WSClient {
   saveLocalFile(path, content) { return this.request('save_local_file', { path, content }); }
   saveAsLocalFile(path, content) { return this.request('save_as_local_file', { path, content }); }
   uploadToCloud(path) { return this.request('upload_to_cloud', { path }); }
-  downloadFromDevice(device_id, loader_num, device_path, local_path) {
-    return this.request('download_from_device', { device_id, loader_num, device_path, local_path });
+  downloadFromDevice(device_id, loader_num, path) {
+    return this.request('download_from_device', { device_id, loader_num, path });
   }
   applyParamsToDevice(device_id, loader_num, path, content) {
     return this.request('apply_params_to_device', { device_id, loader_num, path, content });

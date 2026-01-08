@@ -2307,41 +2307,101 @@
             </span>
           </el-dialog>
 
-          <el-dialog title="日志拉取" :visible.sync="dialogLogVisible" width="600px">
+          <el-dialog
+            title="日志拉取"
+            :visible.sync="dialogLogVisible"
+            width="650px"
+          >
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
               <div style="color: var(--text-muted); font-size: 12px;">
-                设备文件根目录下的 log 文件夹文件列表：
+                仅展示设备 log 目录下的日志文件。
               </div>
               <el-button size="mini" icon="el-icon-refresh" @click="loadLogTree" :loading="logTreeLoading"
                 :disabled="!wsConnected">刷新</el-button>
             </div>
 
             <div v-if="logTreeData && logTreeData.length"
-              style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px;">
-              <el-table :data="logTreeData" size="mini" :show-header="false">
-                <el-table-column>
-                  <template slot-scope="scope">
-                    <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                      <span>
-                        <i class="el-icon-document" style="margin-right: 8px; color: var(--text-muted);"></i>
-                        {{ scope.row.label }}
-                      </span>
-                      <div>
-                        <el-button type="text" size="mini" icon="el-icon-download"
-                          @click="handlePullLog(scope.row)">下载</el-button>
-                        <el-button type="text" size="mini" icon="el-icon-delete" style="color: #F56C6C;"
-                          @click="handleDeleteLog(scope.row)">删除</el-button>
-                      </div>
-                    </div>
-                  </template>
-                </el-table-column>
-              </el-table>
+              style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
+              <el-tree :data="logTreeData" node-key="label" :props="{ label: 'label', children: 'children' }"
+                :default-expand-all="true" :expand-on-click-node="true" highlight-current>
+                <span slot-scope="{ node, data }"
+                  style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-right: 10px;">
+                  <span>
+                    <i :class="data.children && data.children.length ? 'el-icon-folder' : 'el-icon-document'"
+                      style="margin-right: 8px; color: var(--text-muted);"></i>
+                    {{ data.label }}
+                  </span>
+                  <span>
+                    <!-- 仅文件显示下载按钮 -->
+                    <el-button v-if="!data.children || data.children.length === 0" type="text" size="mini"
+                      icon="el-icon-download" @click.stop="handlePullLog(data, node)">下载</el-button>
+                    <!-- 所有节点都显示删除按钮 -->
+                    <el-button type="text" size="mini" icon="el-icon-delete" style="color: #F56C6C;"
+                      @click.stop="handleDeleteLog(data, node)">删除</el-button>
+                  </span>
+                </span>
+              </el-tree>
             </div>
             <div v-else style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
-              {{ wsConnected ? (logTreeLoading ? '加载中…' : '暂无日志目录/文件') : 'WebSocket 未连接' }}
+              {{ wsConnected ? (logTreeLoading ? '加载中…' : '暂无目录/文件') : 'WebSocket 未连接' }}
             </div>
             <span slot="footer" class="dialog-footer">
               <el-button size="mini" @click="dialogLogVisible = false">关闭</el-button>
+            </span>
+          </el-dialog>
+
+          <!-- 工具弹窗：设备文件获取（参数编辑使用，排除 log 目录） -->
+          <el-dialog
+            title="从设备获取文件"
+            :visible.sync="dialogFetchVisible"
+            width="650px"
+          >
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+              <div style="color: var(--text-muted); font-size: 12px;">
+                从设备存储中选择一个文件（排除 log 目录）同步到本地服务器。
+              </div>
+              <el-button size="mini" icon="el-icon-refresh" @click="loadFetchTree" :loading="fetchTreeLoading" :disabled="!wsConnected">刷新</el-button>
+            </div>
+            
+            <div v-if="fetchTreeData && fetchTreeData.length" style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
+              <el-tree
+                :data="fetchTreeData"
+                node-key="label"
+                :props="{ label: 'label', children: 'children' }"
+                :default-expand-all="false"
+                highlight-current
+              >
+                <span slot-scope="{ node, data }" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding-right: 10px;">
+                  <span>
+                    <i :class="data.children && data.children.length ? 'el-icon-folder' : 'el-icon-document'" style="margin-right: 8px; color: var(--text-muted);"></i>
+                    {{ data.label }}
+                  </span>
+                  <span>
+                    <!-- 仅文件显示获取和删除按钮 -->
+                    <template v-if="!data.children || data.children.length === 0">
+                      <el-button 
+                        type="text" 
+                        size="mini" 
+                        icon="el-icon-bottom" 
+                        @click.stop="confirmFetchFile(data, node)"
+                      >获取到本地</el-button>
+                      <el-button 
+                        type="text" 
+                        size="mini" 
+                        icon="el-icon-delete" 
+                        style="color: #F56C6C;" 
+                        @click.stop="handleDeleteFetchFile(data, node)"
+                      >删除</el-button>
+                    </template>
+                  </span>
+                </span>
+              </el-tree>
+            </div>
+            <div v-else style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 20px;">
+              {{ wsConnected ? (fetchTreeLoading ? '加载中…' : '暂无可用文件') : 'WebSocket 未连接' }}
+            </div>
+            <span slot="footer" class="dialog-footer">
+              <el-button size="mini" @click="dialogFetchVisible = false">取消</el-button>
             </span>
           </el-dialog>
 
@@ -2692,7 +2752,7 @@
                   </button>
                 </el-tooltip>
                 <el-tooltip content="从设备读取模型文件" placement="top">
-                  <button class="action-btn" :disabled="!wsConnected" @click="handleGetFileInfo">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadDevice">
                     <i class="el-icon-bottom"></i>设备获取
                   </button>
                 </el-tooltip>
@@ -3661,8 +3721,8 @@
       }
 
       // --- 25 从设备获取文件到服务器本地（download_from_device） ---
-      downloadFromDevice(device_id, loader_num, device_path, local_path) {
-        return this.request('download_from_device', { device_id, loader_num, device_path, local_path });
+      downloadFromDevice(device_id, loader_num, path) {
+        return this.request('download_from_device', { device_id, loader_num, path });
       }
 
       // --- 26 应用参数到设备（apply_params_to_device） ---
@@ -3830,6 +3890,7 @@ current_output_gain:0.5`
         dialogModelVisible: false,
         dialogUpgradeVisible: false,
         dialogLogVisible: false,
+        dialogFetchVisible: false,
         dialogLocalUpgradeVisible: false,
         drawerConsoleVisible: false,
 
@@ -3852,6 +3913,8 @@ current_output_gain:0.5`
         modelTreeData: [],
         logTreeLoading: false,
         logTreeData: [],
+        fetchTreeLoading: false,
+        fetchTreeData: [],
         selectedLogPath: '', // 选中的日志文件路径
 
         // 设备规格配置（从 device_specs.json 加载）
@@ -5094,53 +5157,66 @@ current_output_gain:0.5`
           this.logTreeLoading = true;
           try {
             const roots = await this.loadFileTreeRoot();
-            console.log('[Log] roots parsed:', roots);
-
-            // 递归查找名为 'log' 的节点
+            // 需求：日志拉取弹窗中只会展示 log 目录下的内容
             const logNode = this.findNodeByLabel(roots, 'log');
-
-            if (logNode && logNode.children && logNode.children.length > 0) {
-              // 提取该目录下的所有文件（label 不为空且没有子节点）
-              this.logTreeData = logNode.children.filter(n => n.label && (!n.children || n.children.length === 0));
-              console.log('[Log] Found log files:', this.logTreeData);
+            if (logNode) {
+              // 将 log 节点作为根节点展示，这样 buildFullPath 就能正确包含 "log/" 路径
+              this.logTreeData = [logNode];
             } else {
-              console.warn('[Log] No log folder or empty log folder found in tree');
-              // fallback: 尝试直接查询 log 目录
-              const resp = await wsClient.getFileInfo(this.device_id, this.loader_num, 'log');
-              const payload = (resp && resp.data !== undefined) ? resp.data : resp;
-              const norm = this.normalizeTree(payload);
-              // 如果 norm 本身就是 log 节点或其内容
-              const logData = Array.isArray(norm) ? norm : (norm && norm.children ? norm.children : []);
-              this.logTreeData = logData.filter(n => n.label && (!n.children || n.children.length === 0));
+              this.logTreeData = [];
             }
           } catch (err) {
-            console.error('[Log] Failed to load log tree:', err);
+            console.error('[LogTree] Failed:', err);
             this.logTreeData = [];
           } finally {
             this.logTreeLoading = false;
           }
         },
-        async handlePullLog(row) {
-          if (!row || !row.label) return;
-          const path = `log/${row.label}`;
+        async loadFetchTree() {
+          this.fetchTreeLoading = true;
           try {
-            this.$message.info(`正在拉取日志: ${row.label}...`);
-            // 根据 socket.md 30，使用 pull_loader_log
-            const resp = await wsClient.pullLoaderLog(this.device_id, this.loader_num, path);
-            const payload = (resp && resp.data !== undefined) ? resp.data : resp;
-            if (payload && (payload.ret === false || payload.success === false)) {
-              throw new Error(payload.desc || payload.msg || '拉取失败');
-            }
-            this.$message.success((payload && (payload.desc || payload.msg)) || '日志拉取成功');
+            const roots = await this.loadFileTreeRoot();
+            // 需求：其余内容（排除 log 目录）放到设备获取展示
+            const otherNodes = (Array.isArray(roots) ? roots : [roots]).filter(n => n && String(n.label).toLowerCase() !== 'log');
+            this.fetchTreeData = otherNodes;
           } catch (err) {
-            this.$message.error(`拉取日志失败: ${err.message || err}`);
+            console.error('[FetchTree] Failed:', err);
+            this.fetchTreeData = [];
+          } finally {
+            this.fetchTreeLoading = false;
           }
         },
-        async handleDeleteLog(row) {
-          if (!row || !row.label) return;
-          const path = `log/${row.label}`;
+        async handleDownloadDevice() {
+          this.dialogFetchVisible = true;
+          this.loadFetchTree();
+        },
+        async confirmFetchFile(data, node) {
+          if (!data || (data.children && data.children.length > 0)) {
+            return; // 仅支持获取文件，不支持目录
+          }
+          const path = this.buildFullPath(node);
           try {
-            await this.$confirm(`确定要从设备上删除日志文件 "${row.label}" 吗？`, '删除确认', {
+            this.$message.info(`正在从设备获取文件: ${path}...`);
+            if (this.wsConnected) {
+              // 从设备获取文件到服务器本地
+              await wsClient.downloadFromDevice(this.device_id, this.loader_num, path);
+              this.$message.success('文件获取成功，已存入服务器本地');
+              this.dialogFetchVisible = false;
+              // 刷新本地文件列表
+              await this.parseAllFiles();
+            } else {
+              this.$message.success('已从设备获取文件 (模拟)');
+              this.dialogFetchVisible = false;
+            }
+          } catch (err) {
+            this.$message.error(`获取失败: ${err.message || err}`);
+          }
+        },
+        async handleDeleteFetchFile(data, node) {
+          if (!data || !data.label) return;
+          const path = this.buildFullPath(node);
+          try {
+            await this.$confirm(`确定要从设备上删除文件 "${path}" 吗？`, '删除确认', {
               confirmButtonText: '删除',
               cancelButtonText: '取消',
               type: 'warning'
@@ -5151,7 +5227,57 @@ current_output_gain:0.5`
             if (payload && (payload.ret === false || payload.success === false)) {
               throw new Error(payload.desc || payload.msg || '删除失败');
             }
-            this.$message.success('日志删除成功');
+            this.$message.success('文件删除成功');
+            this.loadFetchTree(); // 刷新列表
+          } catch (err) {
+            if (err !== 'cancel') {
+              this.$message.error(`删除失败: ${err.message || err}`);
+            }
+          }
+        },
+        // 辅助：根据 el-tree 的 node 对象构建完整路径
+        buildFullPath(node) {
+          const pathParts = [];
+          let current = node;
+          while (current && current.data && current.level > 0) {
+            pathParts.unshift(current.data.label);
+            current = current.parent;
+          }
+          return pathParts.join('/');
+        },
+        async handlePullLog(data, node) {
+          if (!data || !data.label) return;
+          const path = this.buildFullPath(node);
+          try {
+            this.$message.info(`正在拉取: ${path}...`);
+            const resp = await wsClient.pullLoaderLog(this.device_id, this.loader_num, path);
+            const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+            if (payload && (payload.ret === false || payload.success === false)) {
+              throw new Error(payload.desc || payload.msg || '拉取失败');
+            }
+            this.$message.success('拉取成功');
+          } catch (err) {
+            this.$message.error(`拉取失败: ${err.message || err}`);
+          }
+        },
+        async handleDeleteLog(data, node) {
+          if (!data || !data.label) return;
+          const path = this.buildFullPath(node);
+          const isDir = data.children && data.children.length > 0;
+
+          try {
+            await this.$confirm(`确定要删除设备上的${isDir ? '目录' : '文件'} "${path}" 吗？${isDir ? '该操作将删除目录下所有内容！' : ''}`, '删除确认', {
+              confirmButtonText: '删除',
+              cancelButtonText: '取消',
+              type: 'warning'
+            });
+
+            const resp = await wsClient.delFile(this.device_id, this.loader_num, path);
+            const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+            if (payload && (payload.ret === false || payload.success === false)) {
+              throw new Error(payload.desc || payload.msg || '删除失败');
+            }
+            this.$message.success('删除成功');
             this.loadLogTree(); // 刷新列表
           } catch (err) {
             if (err !== 'cancel') {
@@ -6045,40 +6171,6 @@ current_output_gain:0.5`
          * 导入文件到设备（从服务器本地导入）
          * 【接口】WebSocket: load_model
          */
-        /**
-         * 从设备获取文件到服务器本地
-         * 【接口】WebSocket: download_from_device
-         */
-        async handleDownloadDevice() {
-          if (!this.currentModel) {
-            this.$message.warning('请先选择一个文件');
-            return;
-          }
-
-          try {
-            const { value } = await this.$prompt('请输入设备中的文件路径', '设备获取', {
-              confirmButtonText: '获取',
-              cancelButtonText: '取消',
-              inputValue: this.currentModel.path || 'project1/example.bin'
-            });
-
-            if (this.wsConnected) {
-              // 从设备获取文件到服务器本地（使用相同的路径）
-              await wsClient.downloadFromDevice(this.device_id, this.loader_num, value, value);
-              this.$message.success('已从设备获取文件到服务器本地');
-              // 刷新文件列表
-              await this.parseAllFiles();
-            } else {
-              console.log('[模拟] 从设备获取');
-              this.$message.success('已从设备获取文件 (模拟)');
-            }
-          } catch (err) {
-            if (err !== 'cancel') {
-              this.$message.error(`获取失败: ${err.message}`);
-            }
-          }
-        },
-
         /**
          * 刷新设备信息（手动刷新时调用，会请求寄存器获取最新状态）
          * 【接口】WebSocket: device.status
