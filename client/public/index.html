@@ -2377,22 +2377,12 @@
                     {{ data.label }}
                   </span>
                   <span>
-                    <!-- 仅文件显示获取和删除按钮 -->
-                    <template v-if="!data.children || data.children.length === 0">
-                      <el-button 
-                        type="text" 
-                        size="mini" 
-                        icon="el-icon-bottom" 
-                        @click.stop="confirmFetchFile(data, node)"
-                      >获取到本地</el-button>
-                      <el-button 
-                        type="text" 
-                        size="mini" 
-                        icon="el-icon-delete" 
-                        style="color: #F56C6C;" 
-                        @click.stop="handleDeleteFetchFile(data, node)"
-                      >删除</el-button>
-                    </template>
+                    <!-- 仅文件显示获取按钮 -->
+                    <el-button v-if="!data.children || data.children.length === 0" type="text" size="mini"
+                      icon="el-icon-bottom" @click.stop="confirmFetchFile(data, node)">获取到本地</el-button>
+                    <!-- 所有节点（文件和目录）都显示删除按钮 -->
+                    <el-button type="text" size="mini" icon="el-icon-delete" style="color: #F56C6C;"
+                      @click.stop="handleDeleteFetchFile(data, node)">删除</el-button>
                   </span>
                 </span>
               </el-tree>
@@ -3345,7 +3335,7 @@
             // 建链握手：告知服务端 UI 已上线
             try {
               // 第一帧严格按要求：纯字符串
-              this.ws.send('Hello, I am ui');
+              this.ws.send('Hello, I am loader');
             } catch (e) {
               console.warn('[WS] hello handshake failed:', e);
             }
@@ -5215,8 +5205,9 @@ current_output_gain:0.5`
         async handleDeleteFetchFile(data, node) {
           if (!data || !data.label) return;
           const path = this.buildFullPath(node);
+          const isDir = data.children && data.children.length > 0;
           try {
-            await this.$confirm(`确定要从设备上删除文件 "${path}" 吗？`, '删除确认', {
+            await this.$confirm(`确定要从设备上删除${isDir ? '目录' : '文件'} "${path}" 吗？${isDir ? '该操作将删除目录下所有内容！' : ''}`, '删除确认', {
               confirmButtonText: '删除',
               cancelButtonText: '取消',
               type: 'warning'
@@ -5227,7 +5218,7 @@ current_output_gain:0.5`
             if (payload && (payload.ret === false || payload.success === false)) {
               throw new Error(payload.desc || payload.msg || '删除失败');
             }
-            this.$message.success('文件删除成功');
+            this.$message.success(`${isDir ? '目录' : '文件'}删除成功`);
             this.loadFetchTree(); // 刷新列表
           } catch (err) {
             if (err !== 'cancel') {
