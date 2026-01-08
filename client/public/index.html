@@ -3074,26 +3074,42 @@
             </div>
           </el-dialog>
 
-          <!-- 弹窗：导入设备选择 -->
-          <el-dialog title="导入设备" :visible.sync="dialogImportDeviceVisible" width="400px">
-            <el-form label-width="100px">
-              <el-form-item label="导入方式">
-                <el-radio-group v-model="importDeviceType">
-                  <el-radio label="current">导入当前设备</el-radio>
-                  <el-radio label="all">导入所有设备</el-radio>
-                </el-radio-group>
-              </el-form-item>
-              <div v-if="currentModel"
-                style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
-                <div style="font-size: 13px; color: #606266;">
-                  <div><strong>文件:</strong> {{ currentModel.filename }}</div>
-                  <div><strong>路径:</strong> {{ currentModel.path }}</div>
-                </div>
+          <!-- 弹窗：导入设备选择（资源树浏览器） -->
+          <el-dialog title="资源导入设备" :visible.sync="dialogImportDeviceVisible" width="600px">
+            <div style="margin-bottom: 15px;">
+              <el-radio-group v-model="importDeviceType" size="mini">
+                <el-radio label="current">导入当前设备</el-radio>
+                <!-- 暂时隐藏导入所有设备功能 -->
+                <!-- <el-radio label="all">导入所有设备</el-radio> -->
+              </el-radio-group>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;">
+              <div style="color: var(--text-muted); font-size: 12px;">
+                请选择要导入的资源 (来自上位机 wcar_resource/loader 目录)：
               </div>
-            </el-form>
+              <el-button size="mini" icon="el-icon-refresh" @click="refreshResourceTree" :loading="resourceTreeLoading">刷新</el-button>
+            </div>
+
+            <div v-loading="resourceTreeLoading"
+              style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
+              <el-tree :key="resourceTreeKey" :props="{ label: 'label', children: 'children', isLeaf: 'isLeaf' }" lazy :load="loadResourceNode"
+                @node-click="handleResourceNodeClick" @node-expand="handleResourceNodeExpand" highlight-current>
+                <span slot-scope="{ node, data }" style="display: flex; align-items: center; gap: 8px;">
+                  <i :class="node.isLeaf ? 'el-icon-document' : 'el-icon-folder'" style="color: var(--text-muted);"></i>
+                  <span>{{ data.label }}</span>
+                </span>
+              </el-tree>
+            </div>
+
+            <div v-if="selectedResourcePath" style="margin-top: 15px; font-size: 12px; color: var(--primary-color);">
+              <strong>已选择导入路径:</strong> {{ selectedResourcePath }}
+            </div>
+
             <div slot="footer">
               <el-button size="mini" @click="dialogImportDeviceVisible = false">取消</el-button>
-              <el-button size="mini" type="primary" @click="confirmImportDevice">确定</el-button>
+              <el-button size="mini" type="primary" @click="confirmImportDevice"
+                :disabled="!selectedResourcePath">开始导入</el-button>
             </div>
           </el-dialog>
 
@@ -3906,6 +3922,9 @@ current_output_gain:0.5`
         fetchTreeLoading: false,
         fetchTreeData: [],
         selectedLogPath: '', // 选中的日志文件路径
+        selectedResourcePath: '', // 选中的资源文件路径（用于导入设备）
+        resourceTreeLoading: false, // 资源树加载状态
+        resourceTreeKey: 0, // 用于强制刷新资源树的 key
 
         // 设备规格配置（从 device_specs.json 加载）
         deviceSpecsConfig: null,
@@ -6451,27 +6470,86 @@ current_output_gain:0.5`
             // cancel
           }
         },
-        handleLoadModelToDevice() {
-          if (!this.currentModel || !this.currentModel.path) {
-            this.$message.warning('请先选择一个文件');
-            return;
-          }
-          // 打开导入设备选择对话框
-          this.importDeviceType = 'current';
-          this.dialogImportDeviceVisible = true;
-        },
-        async confirmImportDevice() {
-          if (!this.currentModel || !this.currentModel.path) return;
-
+        async loadResourceNode(node, resolve) {
           try {
-            // 先保存当前修改（如果有）
-            if (this.hasModified) {
-              await wsClient.saveLocalFile(this.currentModel.path, this.generateBinContent());
+            let path = 'loader';
+            if (node.level > 0) {
+              // 构建完整路径
+              const pathParts = [];
+              let current = node;
+              while (current && current.level > 0) {
+                pathParts.unshift(current.data.label);
+                current = current.parent;
+              }
+              path = 'loader/' + pathParts.join('/');
             }
 
-            const project = this.currentModel.path.split('/')[0] || 'project1';
-            const modelzip = this.currentModel.path;
+            console.log('[ResourceTree] Loading path:', path);
+            const resp = await wsClient.obtainLoaderDirStructure(path);
+            const payload = (resp && resp.data !== undefined) ? resp.data : resp;
+            const list = Array.isArray(payload.result) ? payload.result : [];
+
+            const nodes = list.map(item => {
+              const label = item.label || '';
+              // 需求：如果文件名中未带 .xxx 结尾，都默认为目录
+              const isLeaf = label.indexOf('.') !== -1;
+              return {
+                label,
+                isLeaf,
+                path: path + '/' + label
+              };
+            });
+
+            resolve(nodes);
+          } catch (err) {
+            console.error('[ResourceTree] Load failed:', err);
+            this.$message.error('加载资源列表失败: ' + err.message);
+            resolve([]);
+          }
+        },
+        handleResourceNodeClick(data, node) {
+          // 仅当是文件（带 . 的名称）时才允许选中路径
+          if (data.label && data.label.indexOf('.') !== -1) {
+            // buildFullPath 返回的是从 level 1 开始的路径，
+            // 即相对于 loader/ 目录的相对路径（例如 "project1/example.bin"）
+            this.selectedResourcePath = this.buildFullPath(node);
+          } else {
+            this.selectedResourcePath = '';
+          }
+        },
+        handleLoadModelToDevice() {
+          // 重置选择并打开弹窗
+          this.selectedResourcePath = '';
+          this.importDeviceType = 'current';
+          this.dialogImportDeviceVisible = true;
+          // 每次打开也尝试刷新一下
+          this.resourceTreeKey++;
+        },
+        refreshResourceTree() {
+          this.resourceTreeKey++;
+          this.selectedResourcePath = '';
+        },
+        handleResourceNodeExpand(data, node) {
+          // 需求：用户可以反复点击目录前的小三角按钮去刷新当前目录下有哪些文件
+          // 通过重置 loaded 状态并手动触发 loadData 实现实时刷新
+          node.loaded = false;
+          node.loadData();
+        },
+        async confirmImportDevice() {
+          if (!this.selectedResourcePath) {
+            this.$message.warning('请先选择要导入的文件');
+            return;
+          }
+
+          try {
+            const modelzip = this.selectedResourcePath;
+            // 提取 project 名：路径的第一级目录名，或者是文件名去掉扩展名
+            const parts = modelzip.split('/');
+            const project = parts.length > 1 ? parts[0] : modelzip.split('.')[0];
+            
             const allDevices = this.importDeviceType === 'all';
+
+            this.$message.info(`正在准备导入: ${modelzip}...`);
 
             let resp;
             if (allDevices) {
@@ -6484,7 +6562,7 @@ current_output_gain:0.5`
 
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
             if (payload && payload.ret === false) throw new Error(payload.desc || 'load_model failed');
-            this.$message.success((payload && payload.desc) || `已发送导入请求（${allDevices ? '所有设备' : '当前设备'}）`);
+            this.$message.success((payload && payload.desc) || `导入指令已发送（${allDevices ? '所有设备' : '当前设备'}）`);
             this.dialogImportDeviceVisible = false;
           } catch (err) {
             this.$message.error('导入失败: ' + (err.message || err));
