@@ -2105,6 +2105,11 @@
         return this.request('delete_local_file', { path });
       }
 
+      // --- 删除设备文件（del_file） ---
+      delFile(device_id, loader_num, path) {
+        return this.request('del_file', { device_id, loader_num, path });
+      }
+
       // --- 29 OTA近端升级（loader_ota） ---
       loaderOta(device_id, loader_num, path) {
         return this.request('loader_ota', { device_id, loader_num, path });
@@ -3566,13 +3571,7 @@ current_output_gain:0.5`
               type: 'warning'
             });
 
-            // 注意：socket.md 中暂未明确删除指令，这里尝试 delete_loader_log 或通用 delete_local_file
-            // 这里使用 generic request 发送删除指令
-            const resp = await wsClient.request('delete_loader_log', {
-              device_id: this.device_id,
-              loader_num: this.loader_num,
-              path: path
-            });
+            const resp = await wsClient.delFile(this.device_id, this.loader_num, path);
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
             if (payload && (payload.ret === false || payload.success === false)) {
               throw new Error(payload.desc || payload.msg || '删除失败');
