@@ -3751,13 +3751,13 @@
       }
 
       // --- 22 保存文件到服务器本地（save_local_file） ---
-      saveLocalFile(path, content) {
-        return this.request('save_local_file', { path, content });
+      saveLocalFile(path, bin_json) {
+        return this.request('save_local_file', { path, bin_json });
       }
 
       // --- 23 另存为文件到服务器本地（save_as_local_file） ---
-      saveAsLocalFile(path, content) {
-        return this.request('save_as_local_file', { path, content });
+      saveAsLocalFile(path, bin_json) {
+        return this.request('save_as_local_file', { path, bin_json });
       }
 
       // --- 24 上传文件到云端（upload_to_cloud） ---
@@ -5847,9 +5847,15 @@ current_output_gain:0.5`
           if (!this.currentModel || !this.currentModel.path) return;
 
           try {
-            const content = this.generateBinContent();
+            const binData = {
+              filename: this.currentModel.filename,
+              modules: this.currentModel.modules
+            };
+            const content = this.generateBinContent(); // 生成文本内容供本地 raw 视图更新
+
             if (this.wsConnected) {
-              await wsClient.saveLocalFile(this.currentModel.path, content);
+              // 需求：bin_json 以对象/字典形式发送，由 WSClient 统一序列化
+              await wsClient.saveLocalFile(this.currentModel.path, binData);
               this.$message.success('文件已保存到服务器本地');
             } else {
               console.log('[模拟] 保存文件:', this.currentModel.filename);
@@ -5877,9 +5883,15 @@ current_output_gain:0.5`
               inputValue: this.currentModel.path ? this.currentModel.path.replace(/\.bin$/, '_copy.bin') : 'project1/new_example.bin'
             });
 
-            const content = this.generateBinContent();
+            const binData = {
+              filename: value.split('/').pop(),
+              modules: this.currentModel.modules
+            };
+            const content = this.generateBinContent(); // 生成文本内容供本地 raw 视图更新
+
             if (this.wsConnected) {
-              await wsClient.saveAsLocalFile(value, content);
+              // 需求：bin_json 以对象/字典形式发送
+              await wsClient.saveAsLocalFile(value, binData);
               this.$message.success(`文件已另存为 ${value}`);
               // 刷新文件列表
               await this.parseAllFiles();
@@ -5893,8 +5905,10 @@ current_output_gain:0.5`
               this.$message.success(`文件已另存为 ${value} (模拟)`);
             }
             this.hasModified = false;
-          } catch {
-            // 用户取消
+          } catch (err) {
+            if (err !== 'cancel') {
+              this.$message.error(`另存为失败: ${err.message || err}`);
+            }
           }
         },
 
@@ -5909,15 +5923,19 @@ current_output_gain:0.5`
           const filename = name.endsWith('.bin') ? name : name + '.bin';
 
           try {
-            // 创建一个带注释的空模板
+            // 构造新模型的对象结构
+            const binData = {
+              filename: filename,
+              modules: []
+            };
             const content = `# New Model: ${filename}\n# Created at: ${new Date().toLocaleString()}\n`;
 
             if (this.wsConnected) {
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
               const path = filename;
 
-              // 调用另存为接口保存到服务器本地
-              await wsClient.saveAsLocalFile(path, content);
+              // 调用另存为接口保存到服务器本地，传入对象
+              await wsClient.saveAsLocalFile(path, binData);
               this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
 
@@ -5936,7 +5954,9 @@ current_output_gain:0.5`
                 raw: content,
                 modules: [],
                 success: true,
-                modified: false
+                modified: false,
+                errors: [],
+                warnings: []
               });
               this.$message.success(`模型文件 ${filename} 创建成功 (模拟)`);
               this.dialogNewModelVisible = false;

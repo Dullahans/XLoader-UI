@@ -271,8 +271,8 @@ class WSClient {
   saveLocationInfo(location) { return this.request('save_location_info', { location }); }
   getLocalFileList() { return this.request('get_local_file_list', {}); }
   readLocalFile(path) { return this.request('read_local_file', { path }); }
-  saveLocalFile(path, content) { return this.request('save_local_file', { path, content }); }
-  saveAsLocalFile(path, content) { return this.request('save_as_local_file', { path, content }); }
+  saveLocalFile(path, bin_json) { return this.request('save_local_file', { path, bin_json }); }
+  saveAsLocalFile(path, bin_json) { return this.request('save_as_local_file', { path, bin_json }); }
   uploadToCloud(path) { return this.request('upload_to_cloud', { path }); }
   downloadFromDevice(device_id, loader_num, path) {
     return this.request('download_from_device', { device_id, loader_num, path });
