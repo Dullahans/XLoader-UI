@@ -5870,45 +5870,52 @@ current_output_gain:0.5`
         },
 
         /**
-         * 另存为新文件
-         * 【接口】WebSocket: file.saveAs
+         * 另存为文件到用户本地电脑
          */
         async handleSaveAs() {
           if (!this.currentModel) return;
 
           try {
-            const { value } = await this.$prompt('请输入新文件路径（相对于资源文件夹，如 project1/new_example.bin）', '另存为', {
-              confirmButtonText: '保存',
-              cancelButtonText: '取消',
-              inputValue: this.currentModel.path ? this.currentModel.path.replace(/\.bin$/, '_copy.bin') : 'project1/new_example.bin'
-            });
+            const content = this.generateBinContent();
+            const filename = this.currentModel.filename || 'model.bin';
 
-            const binData = {
-              filename: value.split('/').pop(),
-              modules: this.currentModel.modules
-            };
-            const content = this.generateBinContent(); // 生成文本内容供本地 raw 视图更新
-
-            if (this.wsConnected) {
-              // 需求：bin_json 以对象/字典形式发送
-              await wsClient.saveAsLocalFile(value, binData);
-              this.$message.success(`文件已另存为 ${value}`);
-              // 刷新文件列表
-              await this.parseAllFiles();
-              // 选中新文件
-              const idx = this.models.findIndex(m => m.path === value);
-              if (idx !== -1) {
-                await this.selectModel(idx);
+            // 优先尝试使用现代浏览器的 File System Access API (提供真正的“另存为”对话框)
+            if (window.showSaveFilePicker) {
+              try {
+                const handle = await window.showSaveFilePicker({
+                  suggestedName: filename,
+                  types: [{
+                    description: '模型文件',
+                    accept: { 'text/plain': ['.bin'] },
+                  }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                this.$message.success('文件已保存到本地');
+                return;
+              } catch (pickerErr) {
+                // 如果用户取消了选择，直接返回
+                if (pickerErr.name === 'AbortError') return;
+                console.warn('showSaveFilePicker failed, falling back to download:', pickerErr);
               }
-            } else {
-              console.log('[模拟] 另存为:', value);
-              this.$message.success(`文件已另存为 ${value} (模拟)`);
             }
-            this.hasModified = false;
+
+            // 兜底方案：传统的 <a> 标签下载方式
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            this.$message.success('已触发浏览器下载');
           } catch (err) {
-            if (err !== 'cancel') {
-              this.$message.error(`另存为失败: ${err.message || err}`);
-            }
+            console.error('另存为失败:', err);
+            this.$message.error(`保存失败: ${err.message || err}`);
           }
         },
 
@@ -6681,6 +6688,8 @@ current_output_gain:0.5`
             }
             content += '\n';
           }
+          // 需求：内容结尾新增一行 "END" 作为结束符号
+          content += 'END\n';
           return content;
         },
 
