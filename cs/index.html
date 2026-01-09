@@ -4684,11 +4684,11 @@ current_output_gain:0.5`
               filename: this.currentModel.filename,
               modules: this.currentModel.modules
             };
-            const binJson = JSON.stringify(binData);
             const content = this.generateBinContent(); // 生成文本内容供本地 raw 视图更新
 
             if (this.wsConnected) {
-              await wsClient.saveLocalFile(this.currentModel.path, binJson);
+              // 需求：bin_json 以对象/字典形式发送，由 WSClient 统一序列化
+              await wsClient.saveLocalFile(this.currentModel.path, binData);
               this.$message.success('文件已保存到服务器本地');
             } else {
               console.log('[模拟] 保存文件:', this.currentModel.filename);
@@ -4720,11 +4720,11 @@ current_output_gain:0.5`
               filename: value.split('/').pop(),
               modules: this.currentModel.modules
             };
-            const binJson = JSON.stringify(binData);
             const content = this.generateBinContent(); // 生成文本内容供本地 raw 视图更新
 
             if (this.wsConnected) {
-              await wsClient.saveAsLocalFile(value, binJson);
+              // 需求：bin_json 以对象/字典形式发送
+              await wsClient.saveAsLocalFile(value, binData);
               this.$message.success(`文件已另存为 ${value}`);
               // 刷新文件列表
               await this.parseAllFiles();
@@ -4756,20 +4756,19 @@ current_output_gain:0.5`
           const filename = name.endsWith('.bin') ? name : name + '.bin';
 
           try {
-            // 构造新模型的 JSON 结构
+            // 构造新模型的对象结构
             const binData = {
               filename: filename,
               modules: []
             };
-            const binJson = JSON.stringify(binData);
             const content = `# New Model: ${filename}\n# Created at: ${new Date().toLocaleString()}\n`;
 
             if (this.wsConnected) {
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
               const path = filename;
 
-              // 调用另存为接口保存到服务器本地，传入 JSON
-              await wsClient.saveAsLocalFile(path, binJson);
+              // 调用另存为接口保存到服务器本地，传入对象
+              await wsClient.saveAsLocalFile(path, binData);
               this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
 
