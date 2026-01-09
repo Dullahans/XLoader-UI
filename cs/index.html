@@ -5521,6 +5521,8 @@ current_output_gain:0.5`
             }
             content += '\n';
           }
+          // 需求：内容结尾新增一行 "END" 作为结束符号
+          content += 'END\n';
           return content;
         },
 
