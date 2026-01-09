@@ -4590,7 +4590,16 @@ current_output_gain:0.5`
         isOutOfRange(param) {
           const def = this.getParamDef(param.name);
           if (!def || def.min === undefined || param.type !== 'single') return false;
-          return param.value < def.min || param.value > def.max;
+          
+          // 确保转换为数字进行比较，避免字符串比较导致的边界问题（如 "0.00" 与 0）
+          const val = parseFloat(param.value);
+          const min = parseFloat(def.min);
+          const max = parseFloat(def.max);
+          
+          if (isNaN(val)) return false;
+          
+          // 使用微小的容差处理浮点数边界（例如 0.00 应该等于 0）
+          return val < (min - 1e-9) || val > (max + 1e-9);
         },
         isNumericParam(param) {
           return typeof param.value === 'number' || !isNaN(parseFloat(param.value));
