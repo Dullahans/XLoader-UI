@@ -3988,7 +3988,7 @@ current_output_gain:0.5`
         models: [],
         isModelRunning: false,
         runningFile: '',
-        runningModule: 'WINDOW_R',
+        runningModule: '',
         // 设备信息（从接口获取）
         deviceInfo: {
           sn: '',
@@ -4745,9 +4745,15 @@ current_output_gain:0.5`
             if (!f || f.toLowerCase().includes('example') || isFailMfile(f)) {
               this.isModelRunning = false;
               this.runningFile = '';
+              this.runningModule = '';
             } else {
               this.isModelRunning = true;
               this.runningFile = f;
+              // 修复：从 MFILE 寄存器值中提取模块名
+              const parts = f.split(/[\/\\]/);
+              if (parts.length > 0) {
+                this.runningModule = parts[parts.length - 1];
+              }
             }
           } catch (err) {
             // 读信号失败时，不应继续显示“运行中”
@@ -4901,9 +4907,17 @@ current_output_gain:0.5`
                 !isFailMfile(runningModel)) {
                 this.isModelRunning = true;
                 this.runningFile = runningModel;
+                
+                // 修复：从模型路径中提取模块名
+                // 路径结构通常为 "工程/模块" 或 "工程/子目录/模块"，取最后一部分
+                const parts = runningModel.split(/[\/\\]/); // 兼容正反斜杠
+                if (parts.length > 0) {
+                  this.runningModule = parts[parts.length - 1];
+                }
               } else {
                 this.isModelRunning = false;
                 this.runningFile = '';
+                this.runningModule = '';
               }
             }
           }
@@ -5492,6 +5506,7 @@ current_output_gain:0.5`
               // 如果响应表明停止成功，直接更新状态，不需要再读取MFILE
               this.isModelRunning = false;
               this.runningFile = '';
+              this.runningModule = '';
               this.$message.success((payload && payload.desc) || '已发送停止命令');
               // 不再调用 refreshDeviceInfoFromSignals，因为响应已经表明停止成功
             }
@@ -6963,7 +6978,14 @@ current_output_gain:0.5`
          */
         handleDeviceStatusUpdate(data) {
           if (data.connected !== undefined) this.deviceConnected = data.connected;
-          if (data.running_file) this.runningFile = data.running_file;
+          if (data.running_file) {
+            this.runningFile = data.running_file;
+            // 如果推送中没有明确提供 running_module，则从路径中提取
+            if (!data.running_module) {
+              const parts = String(data.running_file).split(/[\/\\]/);
+              this.runningModule = parts[parts.length - 1];
+            }
+          }
           if (data.running_module) this.runningModule = data.running_module;
           if (data.current !== undefined) this.realtimeData.current = data.current;
           if (data.voltage !== undefined) this.realtimeData.voltage = data.voltage;
