@@ -5934,8 +5934,8 @@ current_output_gain:0.5`
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
               const path = filename;
 
-              // 调用另存为接口保存到服务器本地，传入对象
-              await wsClient.saveAsLocalFile(path, binData);
+              // 调用保存接口保存到服务器本地，传入对象
+              await wsClient.saveLocalFile(path, binData);
               this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
 
@@ -6069,19 +6069,25 @@ current_output_gain:0.5`
 
           // 构建新参数对象
           let initialValue;
+          let paramType = 'single'; // 默认统一使用 single 类型适配 UI
+
           if (pDef.type === 'array') {
+            paramType = 'array';
             initialValue = pDef.default !== undefined ? [...pDef.default] : [];
           } else if (pDef.type === 'matrix') {
+            paramType = 'matrix';
             initialValue = pDef.default !== undefined ? pDef.default.map(row => [...row]) : [[0, 0, 0]];
           } else if (pDef.type === 'boolean') {
+            paramType = 'single'; // 布尔值也映射为 single
             initialValue = pDef.default !== undefined ? pDef.default : (pDef.options && pDef.options.length > 0 ? pDef.options[0] : 0);
           } else {
+            paramType = 'single'; // number 等其他类型映射为 single
             initialValue = pDef.default !== undefined ? pDef.default : (pDef.min !== undefined ? pDef.min : 0);
           }
 
           const newParam = {
             name: this.selectedParamName,
-            type: pDef.type || 'single',
+            type: paramType,
             value: initialValue
           };
 
