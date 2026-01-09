@@ -2748,25 +2748,25 @@
                 <el-tooltip content="上传当前文件到云端服务器" placement="top">
                   <button class="action-btn" :disabled="!wsConnected || !currentModel || !currentModel.path"
                     @click="handleUploadCloud">
-                    <i class="el-icon-upload2"></i>上传云端
+                    <i class="el-icon-upload2"></i>云端上传
                   </button>
                 </el-tooltip>
                 <el-tooltip content="从云端获取模型文件列表" placement="top">
                   <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadCloudModel">
-                    <i class="el-icon-download"></i>云端获取
+                    <i class="el-icon-download"></i>云端下载
                   </button>
                 </el-tooltip>
 
                 <span class="btn-divider"></span>
 
-                <el-tooltip content="将当前文件导入到设备存储" placement="top">
-                  <button class="action-btn" :disabled="!wsConnected" @click="handleLoadModelToDevice">
-                    <i class="el-icon-top"></i>导入设备
+                <el-tooltip content="从设备获取文件" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadDevice">
+                    <i class="el-icon-top"></i>模型导出
                   </button>
                 </el-tooltip>
-                <el-tooltip content="从设备读取模型文件" placement="top">
-                  <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadDevice">
-                    <i class="el-icon-bottom"></i>设备获取
+                <el-tooltip content="将资源导入到设备存储" placement="top">
+                  <button class="action-btn" :disabled="!wsConnected" @click="handleLoadModelToDevice">
+                    <i class="el-icon-bottom"></i>模型导入
                   </button>
                 </el-tooltip>
 
