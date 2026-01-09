@@ -1246,7 +1246,7 @@
 
     .module-body {
       display: none;
-      padding: 12px 14px;
+      padding: 16px 20px;
     }
 
     .module-body.expanded {
@@ -1256,93 +1256,108 @@
     /* 参数行 - 增强版 */
     .param-row {
       display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 12px;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
       align-items: start;
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin-bottom: 4px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
       border: 1px solid transparent;
+      background: var(--bg-white);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       transition: all 0.2s;
     }
 
     .param-row:hover {
-      background: var(--bg-gray);
-      border-color: var(--border-color);
+      background: #fcfaff;
+      border-color: var(--primary-light);
+      box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
     }
 
     .param-label-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      padding-top: 4px;
     }
 
     .param-name-row {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .param-key {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--text-primary);
       font-family: var(--font-mono);
-      font-weight: 500;
+      font-weight: 600;
+      word-break: break-all;
     }
 
     .param-name-cn {
       font-size: 11px;
       color: var(--primary-color);
-      background: var(--primary-bg);
-      padding: 1px 6px;
+      background: rgba(139, 92, 246, 0.1);
+      padding: 2px 8px;
       border-radius: 4px;
+      white-space: nowrap;
     }
 
     .param-desc {
       font-size: 11px;
       color: var(--text-muted);
-      line-height: 1.4;
+      line-height: 1.5;
+      margin-top: 2px;
     }
 
     .param-range {
-      font-size: 10px;
-      color: var(--text-muted);
+      font-size: 11px;
+      color: var(--text-secondary);
       font-family: var(--font-mono);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
+      margin-top: 4px;
+      background: #f0fdf4;
+      padding: 2px 8px;
+      border-radius: 4px;
+      width: fit-content;
     }
 
     .param-range i {
       font-size: 12px;
-      color: var(--info-color);
+      color: var(--success-color);
     }
 
     .param-input-section {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 8px;
+      min-width: 0;
     }
 
     .param-input-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
     }
 
     .param-unit {
-      font-size: 11px;
-      color: var(--text-muted);
+      font-size: 12px;
+      color: var(--text-secondary);
       font-family: var(--font-mono);
-      min-width: 40px;
+      min-width: 45px;
     }
 
     .param-type-badge {
-      font-size: 9px;
-      padding: 1px 4px;
-      border-radius: 3px;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
       background: var(--bg-gray);
       color: var(--text-muted);
+      text-transform: uppercase;
     }
 
     /* 参数值超出范围警告 */
