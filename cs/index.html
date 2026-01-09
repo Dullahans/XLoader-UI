@@ -4767,8 +4767,8 @@ current_output_gain:0.5`
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
               const path = filename;
 
-              // 调用另存为接口保存到服务器本地，传入对象
-              await wsClient.saveAsLocalFile(path, binData);
+              // 调用保存接口保存到服务器本地，传入对象
+              await wsClient.saveLocalFile(path, binData);
               this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
 
