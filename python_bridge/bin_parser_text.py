@@ -90,7 +90,7 @@ def parse_text_bin(content: str, filename: str = "unknown") -> Dict[str, Any]:
             else:
                 flush_multiline()
 
-        if not line or line.startswith("#"):
+        if not line or line.startswith("#") or line.upper() == "END":
             continue
 
         if ":" in line:
