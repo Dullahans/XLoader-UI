@@ -2137,7 +2137,7 @@
       display: block;
     }
 
-    /* 侧边悬浮面板样式 */
+    /* 侧边悬浮面板样式 - 更加紧凑 */
     .floating-panel {
       position: fixed;
       right: 0;
@@ -2147,32 +2147,32 @@
       background: var(--bg-white);
       border: 1px solid var(--border-color);
       border-right: none;
-      border-radius: 12px 0 0 12px;
-      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
+      border-radius: 0; /* 使用方形直角 */
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
-      padding: 10px 6px;
-      gap: 15px;
+      padding: 8px 4px;
+      gap: 8px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
-      width: 44px;
+      width: 36px;
       overflow: hidden;
     }
 
     .floating-panel:hover {
-      width: 140px;
-      padding: 12px;
-      box-shadow: -6px 0 24px rgba(139, 92, 246, 0.2);
+      width: 120px;
+      padding: 10px;
+      box-shadow: -4px 0 20px rgba(139, 92, 246, 0.15);
       border-color: var(--primary-light);
     }
 
     .floating-item {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       cursor: pointer;
-      padding: 8px;
-      border-radius: 8px;
+      padding: 6px;
+      border-radius: 4px;
       transition: all 0.2s;
       color: var(--text-secondary);
       white-space: nowrap;
@@ -2184,14 +2184,14 @@
     }
 
     .floating-item i {
-      font-size: 20px;
+      font-size: 18px;
       flex-shrink: 0;
       width: 24px;
       text-align: center;
     }
 
     .floating-item span {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 500;
       opacity: 0;
       transition: opacity 0.3s;
@@ -2202,24 +2202,24 @@
     }
 
     .drag-handle {
-      height: 20px;
+      height: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: grab;
+      cursor: move;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--border-light);
-      margin-bottom: 5px;
+      border-top: 1px solid var(--border-light);
+      margin-top: 4px;
+      opacity: 0; /* 默认隐藏 */
+      transition: opacity 0.3s;
     }
 
-    .drag-handle:active {
-      cursor: grabbing;
+    .floating-panel:hover .drag-handle {
+      opacity: 1; /* 鼠标移入时显示 */
     }
 
-    .drag-handle::before {
-      content: "•••";
-      letter-spacing: 2px;
-      font-size: 12px;
+    .drag-handle i {
+      font-size: 14px;
     }
 
     /* 顶部工具栏适配模型控制功能 */
@@ -2267,7 +2267,7 @@
                         'reg-modified': reg.modified, 
                         'reg-read-error': reg.readError,
                         'drag-over-row': dragOverRowIndex === index 
-                      }"><td class="reg-id" style="text-align: center;">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td><td class="reg-name">{{ reg.name }}</td><td style="text-align: center;"><el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">{{ reg.type === 'int' ? '数值' : '字符串' }}</el-tag></td><td style="text-align: center;"><el-tag size="mini" :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">{{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}</el-tag></td><td class="reg-value" :class="{ 'text-danger': reg.readError }"><template v-if="reg.access !== 'write'">{{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}</template><span v-else class="muted">--</span></td><td class="reg-write"><div v-if="reg.access !== 'read'" class="reg-input-wrap"><input v-if="reg.type === 'int'" type="number" class="reg-input" v-model.number="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'" :min="reg.min !== null ? reg.min : undefined" :max="reg.max !== null ? reg.max : undefined"/> <input v-else class="reg-input" v-model="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"/></div><span v-else class="muted">只读</span></td><td class="reg-desc"><div>{{ reg.description }}</div><div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">范围: {{ reg.min }} ~ {{ reg.max }}</div></td><td class="reg-actions"><el-button v-if="reg.access !== 'write'" size="mini" icon="el-icon-refresh" :loading="reg.loading" @click="readRegister(reg)">读取</el-button><el-button v-if="reg.access !== 'read'" size="mini" type="primary" icon="el-icon-upload2" :disabled="reg.inputValue === '' || reg.inputValue === null" @click="writeRegister(reg)">写入</el-button></td></tr></tbody></table><div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;"><i class="el-icon-folder-opened"></i><p>没有匹配的寄存器</p></div></div><div class="register-stats"><span>共 {{ registers.length }} 个寄存器</span> <span>|</span> <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span> <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span> <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span></div></div></div></div></div></div><div id="floating-panel" class="floating-panel"><div class="drag-handle" title="上下拖动调整位置"></div><div class="floating-item" @click="openUpgradeDialog" title="设备升级"><i class="el-icon-upload"></i> <span>设备升级</span></div><div class="floating-item" @click="openLogDialog" title="日志拉取"><i class="el-icon-document"></i> <span>日志拉取</span></div><div class="floating-item" @click="openConsoleDrawer" title="控制台"><i class="el-icon-monitor"></i> <span>控制台</span></div></div></div><script>// 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
+                      }"><td class="reg-id" style="text-align: center;">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td><td class="reg-name">{{ reg.name }}</td><td style="text-align: center;"><el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">{{ reg.type === 'int' ? '数值' : '字符串' }}</el-tag></td><td style="text-align: center;"><el-tag size="mini" :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">{{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}</el-tag></td><td class="reg-value" :class="{ 'text-danger': reg.readError }"><template v-if="reg.access !== 'write'">{{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}</template><span v-else class="muted">--</span></td><td class="reg-write"><div v-if="reg.access !== 'read'" class="reg-input-wrap"><input v-if="reg.type === 'int'" type="number" class="reg-input" v-model.number="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'" :min="reg.min !== null ? reg.min : undefined" :max="reg.max !== null ? reg.max : undefined"/> <input v-else class="reg-input" v-model="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"/></div><span v-else class="muted">只读</span></td><td class="reg-desc"><div>{{ reg.description }}</div><div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">范围: {{ reg.min }} ~ {{ reg.max }}</div></td><td class="reg-actions"><el-button v-if="reg.access !== 'write'" size="mini" icon="el-icon-refresh" :loading="reg.loading" @click="readRegister(reg)">读取</el-button><el-button v-if="reg.access !== 'read'" size="mini" type="primary" icon="el-icon-upload2" :disabled="reg.inputValue === '' || reg.inputValue === null" @click="writeRegister(reg)">写入</el-button></td></tr></tbody></table><div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;"><i class="el-icon-folder-opened"></i><p>没有匹配的寄存器</p></div></div><div class="register-stats"><span>共 {{ registers.length }} 个寄存器</span> <span>|</span> <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span> <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span> <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span></div></div></div></div></div></div><div id="floating-panel" class="floating-panel"><div class="floating-item" @click="openUpgradeDialog" title="设备升级"><i class="el-icon-upload"></i> <span>设备升级</span></div><div class="floating-item" @click="openLogDialog" title="日志拉取"><i class="el-icon-document"></i> <span>日志拉取</span></div><div class="floating-item" @click="openConsoleDrawer" title="控制台"><i class="el-icon-monitor"></i> <span>控制台</span></div><div class="drag-handle" title="上下拖动调整位置"><i class="el-icon-rank"></i></div></div></div><script>// 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
     let modelDictionary = { parameters: {}, modules: {} };
 
     // ============================================================
