@@ -228,7 +228,8 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
     }
 }
 
-10.上位机工程跟目录下resource/loader目录结构读取
+10.上位机工程跟目录下wcar_resource/loader目录结构读取
+读取目录loader下的文件：
 请求
 {
     ...
@@ -247,6 +248,24 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
         ]
     }
 }
+读取loader文件夹下目录project1下的文件信息：
+{
+    ...
+    "name":"obtain_loader_dir_structure",
+    "data":"{\"path\":\"loader/project1\"}"
+}
+响应
+{
+    "name":"obtain_loader_dir_structure",
+    "data":{
+        "result":[
+            {"label":"test1"},
+            {"label":"test2"},
+            {"label":"example.zip"},
+        ]
+    }
+}
+
 
 11.导入模型文件
 请求（导入当前设备）
@@ -475,13 +494,26 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
 {
     "name":"read_local_file",
     "data":{
-        "ret":true,
-        "desc":"",
-        "data":{
-            "content":"...bin文件原始文本内容",
-            "filename":"example.bin",
-            "path":"project1/example.bin"
-        }
+        "success":true,
+        "filename":"example.bin",
+        "modules":[{
+            "name":"WINDOW_R",
+            "params":[
+                {
+                    "name":"up_limit",
+                    "type":"single",
+                    "value":2200
+                },{
+                    "name":"up_limit",
+                    "type":"array",
+                    "value":[1,2,3]
+                }
+            ]
+            }
+        ],
+        "content":"...bin原始文本内容"，
+        "warnings":[],
+        "errors":[]
     }
 }
 
@@ -490,7 +522,7 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
 {
     ...
     "name":"save_local_file",
-    "data":"{\"path\":\"project1/example.bin\",\"content\":\"...bin文件内容\"}"
+    "data":"{\"path\":\"project1/example.bin\",\"bin_json\":bin文件字典}"
 }
 响应
 {
@@ -538,7 +570,7 @@ sim_type:运行方式的区别，回灌：data_replay,模型:component_emulation
 {
     ...
     "name":"download_from_device",
-    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"device_path\":\"project1/example.bin\",\"local_path\":\"project1/example.bin\"}"
+    "data":"{\"device_id\":\"127.0.0.1\",\"loader_num\":0,\"path\":\"project1/example.bin\"}"
 }
 响应
 {
