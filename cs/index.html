@@ -2137,7 +2137,7 @@
       display: block;
     }
 
-    /* 侧边悬浮面板样式 - 更加紧凑 */
+    /* 侧边悬浮面板样式 - 更加紧凑且现代 */
     .floating-panel {
       position: fixed;
       right: 0;
@@ -2147,35 +2147,33 @@
       background: var(--bg-white);
       border: 1px solid var(--border-color);
       border-right: none;
-      border-radius: 0; /* 使用方形直角 */
-      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.08);
+      border-radius: 12px 0 0 12px; /* 圆角样式 */
+      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
-      padding: 8px 4px;
-      gap: 8px;
+      padding: 10px 6px;
+      gap: 10px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
-      width: 36px;
-      overflow: hidden;
+      width: 44px; /* 默认宽度 */
     }
 
     .floating-panel:hover {
-      width: 120px;
-      padding: 10px;
       box-shadow: -4px 0 20px rgba(139, 92, 246, 0.15);
       border-color: var(--primary-light);
     }
 
     .floating-item {
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
       cursor: pointer;
-      padding: 6px;
-      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       transition: all 0.2s;
       color: var(--text-secondary);
-      white-space: nowrap;
     }
 
     .floating-item:hover {
@@ -2184,42 +2182,69 @@
     }
 
     .floating-item i {
-      font-size: 18px;
-      flex-shrink: 0;
-      width: 24px;
-      text-align: center;
+      font-size: 20px;
+      transition: transform 0.2s;
+    }
+
+    .floating-item:hover i {
+      transform: scale(1.25); /* 鼠标移入图标适当放大 */
     }
 
     .floating-item span {
+      position: absolute;
+      right: 100%;
+      margin-right: 15px;
+      background: rgba(45, 45, 45, 0.9);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
       font-size: 12px;
-      font-weight: 500;
+      white-space: nowrap;
       opacity: 0;
-      transition: opacity 0.3s;
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
-    .floating-panel:hover .floating-item span {
+    .floating-item:hover span {
       opacity: 1;
+      transform: translateX(0); /* 向左弹出文本 */
+    }
+
+    /* 气泡小箭头 */
+    .floating-item span::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 6px solid transparent;
+      border-left-color: rgba(45, 45, 45, 0.9);
     }
 
     .drag-handle {
-      height: 24px;
+      height: 0;
+      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: move;
       color: var(--text-muted);
-      border-top: 1px solid var(--border-light);
-      margin-top: 4px;
-      opacity: 0; /* 默认隐藏 */
-      transition: opacity 0.3s;
+      opacity: 0;
+      transition: all 0.3s ease;
+      background: transparent;
     }
 
     .floating-panel:hover .drag-handle {
-      opacity: 1; /* 鼠标移入时显示 */
+      height: 32px;
+      opacity: 1;
+      margin-top: 5px;
+      border-top: 1px solid var(--border-light);
     }
 
     .drag-handle i {
-      font-size: 14px;
+      font-size: 16px;
     }
 
     /* 顶部工具栏适配模型控制功能 */
