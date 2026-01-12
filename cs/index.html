@@ -2145,13 +2145,13 @@
       transform: translateY(-50%);
       z-index: 2000;
       background: var(--bg-white);
-      border: 1px solid var(--border-color);
+      border: none;
       border-radius: 30px; /* 大圆角形成胶囊/半圆形状 */
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
       padding: 10px 3px; /* 增加上下内边距，使半圆效果更完美 */
-      gap: 6px;
+      gap: 2px; /* 进一步缩小图标间距 */
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
       width: 22px; /* 缩小至约一半 */
@@ -2160,9 +2160,8 @@
     .floating-panel:hover {
       width: 44px; /* 鼠标挪上去后放大到现在这个大小 */
       padding: 10px 6px;
-      gap: 10px;
+      gap: 4px; /* 悬停时也保持较小的间距 */
       box-shadow: -4px 0 20px rgba(139, 92, 246, 0.15);
-      border-color: var(--primary-light);
     }
 
     .floating-item {
@@ -2252,7 +2251,6 @@
       height: 32px;
       opacity: 1;
       margin-top: 5px;
-      border-top: 1px solid var(--border-light);
     }
 
     .drag-handle i {
