@@ -4501,7 +4501,7 @@ current_output_gain:0.5`
                     errors: [],
                     warnings: []
                   }));
-                  
+
                   // 自动选中正在运行的模型
                   let foundRunning = false;
                   if (this.isModelRunning && this.runningFile) {
@@ -4512,7 +4512,7 @@ current_output_gain:0.5`
                       console.log('[参数编辑] 自动选中运行中模型:', this.models[runningIdx].filename);
                     }
                   }
-                  
+
                   if (!foundRunning) {
                     this.activeModelIndex = -1; // 默认不选中
                   }
@@ -4605,9 +4605,14 @@ current_output_gain:0.5`
 
           this.showRaw = false;
           this.hasModified = false;
+          // 自动展开运行中的模块，否则默认展开第一个
           if (this.currentModel && this.isFileRunning(this.currentModel.filename)) {
             const runningModuleIndex = this.currentModel.modules.findIndex(m => m.name === this.runningModule);
-            if (runningModuleIndex !== -1) this.expandedModules = { [runningModuleIndex]: true };
+            if (runningModuleIndex !== -1) {
+              this.expandedModules = { [runningModuleIndex]: true };
+            } else {
+              this.expandedModules = { 0: true };
+            }
           } else {
             this.expandedModules = { 0: true };
           }
@@ -4626,12 +4631,16 @@ current_output_gain:0.5`
         },
         isFileRunning(filename) {
           if (!this.isModelRunning || !this.runningFile || !filename) return false;
+          // 标准化路径和文件名，忽略正反斜杠差异及后缀名差异
           const normalize = (s) => String(s).replace(/\\/g, '/').replace(/\.(bin|json)$/i, '');
           const running = normalize(this.runningFile);
           const current = normalize(filename);
+          // 匹配规则：完全一致，或者路径结尾匹配
           return running === current || running.endsWith('/' + current) || current.endsWith('/' + running);
         },
-        isModuleRunning(filename, moduleName) { return this.isFileRunning(filename) && this.runningModule === moduleName; },
+        isModuleRunning(filename, moduleName) {
+          return this.isFileRunning(filename) && this.runningModule === moduleName;
+        },
 
         // 参数字典相关方法
         // 模型字典相关方法（来自 data/model_dictionary.json）
