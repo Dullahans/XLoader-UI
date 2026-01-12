@@ -2273,9 +2273,21 @@
       font-size: 16px;
     }
 
+    /* 全局消息提示样式调整：位于顶部工具栏下方，水平居中 */
+    .el-message {
+      min-width: 300px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      border: none !important;
+    }
+
+    .el-message--success { background-color: #f0fdf4 !important; }
+    .el-message--error { background-color: #fef2f2 !important; }
+    .el-message--warning { background-color: #fffbeb !important; }
+    .el-message--info { background-color: #f0f9ff !important; }
+
     /* 顶部工具栏适配模型控制功能 */
     .toolbar {
-      height: 60px; /* 稍微加高一点以容纳更多内容 */
+      height: 52px; /* 调整高度与左侧 sidebar-header (14+24+14) 保持一致 */
       background: var(--bg-white);
       border-bottom: 1px solid var(--border-color);
       display: flex;
@@ -3479,6 +3491,28 @@
   </div>
 
   <script>
+    // 全局修改 Element UI 消息提示默认配置
+    const _originalMessage = Vue.prototype.$message;
+    Vue.prototype.$message = function (options) {
+      const defaultOptions = {
+        duration: 1500, // 降低显示时长至 1.5s
+        offset: 75,     // 位于 toolbar (60px) 下方，避开模型选择框
+        showClose: true
+      };
+      if (typeof options === 'string') {
+        return _originalMessage({ ...defaultOptions, message: options });
+      }
+      return _originalMessage({ ...defaultOptions, ...options });
+    };
+    // 重新绑定便捷方法
+    ['success', 'warning', 'info', 'error'].forEach(type => {
+      Vue.prototype.$message[type] = (options) => {
+        if (typeof options === 'string') options = { message: options };
+        options.type = type;
+        return Vue.prototype.$message(options);
+      };
+    });
+
     // 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
     let modelDictionary = { parameters: {}, modules: {} };
 
