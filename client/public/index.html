@@ -685,41 +685,6 @@
       margin-right: 20px;
     }
 
-    .toolbar-buttons {
-      display: flex;
-      gap: 6px;
-      flex: 1;
-    }
-
-    .tool-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 12px;
-      background: var(--bg-gray);
-      border: 1px solid transparent;
-      border-radius: 6px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tool-btn:hover {
-      background: var(--bg-hover);
-      color: var(--text-primary);
-    }
-
-    .tool-btn.active {
-      background: var(--primary-bg);
-      color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-
-    .tool-btn i {
-      font-size: 14px;
-    }
-
     .content-area {
       flex: 1;
       display: flex;
@@ -828,33 +793,7 @@
       color: var(--text-muted);
     }
 
-    /* 顶部模型控制栏（设备信息/参数编辑/寄存器管理公共区域） */
-    .model-control-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-      background: var(--bg-white);
-      padding: 10px 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .model-control-bar .bar-left,
-    .model-control-bar .bar-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .model-control-bar .bar-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-
+    /* 顶部页签切换 */
     .page-tabs {
       display: flex;
       gap: 4px;
@@ -2214,6 +2153,157 @@
       display: block;
     }
 
+    /* 侧边悬浮面板样式 - 极致紧凑且支持缩放 */
+    .floating-panel {
+      position: fixed;
+      right: 8px; /* 稍微离开边缘，以显示右侧圆角 */
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 2000;
+      background: var(--bg-white);
+      border: none;
+      border-radius: 30px; /* 大圆角形成胶囊/半圆形状 */
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      padding: 4px 3px; /* 大幅缩小上下内边距 */
+      gap: 2px; /* 进一步缩小图标间距 */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      width: 22px; /* 缩小至约一半 */
+    }
+
+    .floating-panel:hover {
+      width: 44px; /* 鼠标挪上去后放大到现在这个大小 */
+      padding: 10px 6px;
+      gap: 4px; /* 悬停时也保持较小的间距 */
+      box-shadow: -4px 0 20px rgba(139, 92, 246, 0.15);
+    }
+
+    .floating-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      width: 16px; /* 初始小尺寸 */
+      height: 16px;
+      border-radius: 4px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-secondary);
+    }
+
+    .floating-panel:hover .floating-item {
+      width: 32px; /* 悬停时恢复尺寸 */
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .floating-item:hover {
+      background: var(--primary-bg);
+      color: var(--primary-color);
+    }
+
+    .floating-item i {
+      font-size: 12px; /* 初始小图标 */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .floating-panel:hover .floating-item i {
+      font-size: 20px; /* 悬停时图标放大 */
+    }
+
+    .floating-item:hover i {
+      transform: scale(1.2); 
+    }
+
+    .floating-item span {
+      position: absolute;
+      right: 100%;
+      margin-right: 15px;
+      background: rgba(45, 45, 45, 0.9);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: translateX(10px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .floating-item:hover span {
+      opacity: 1;
+      transform: translateX(0); /* 向左弹出文本 */
+    }
+
+    /* 气泡小箭头 */
+    .floating-item span::after {
+      content: '';
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 6px solid transparent;
+      border-left-color: rgba(45, 45, 45, 0.9);
+    }
+
+    .drag-handle {
+      height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: move;
+      color: var(--text-muted);
+      opacity: 0;
+      transition: all 0.3s ease;
+      background: transparent;
+    }
+
+    .floating-panel:hover .drag-handle {
+      height: 24px; /* 缩小手柄高度 */
+      opacity: 1;
+      margin-top: 2px; /* 缩小间距 */
+    }
+
+    .drag-handle i {
+      font-size: 16px;
+    }
+
+    /* 顶部工具栏适配模型控制功能 */
+    .toolbar {
+      height: 60px; /* 稍微加高一点以容纳更多内容 */
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
+    .toolbar .bar-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toolbar .bar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border-color);
+    }
+
+    .toolbar .bar-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
     ::-webkit-scrollbar-thumb:hover {
       background: var(--text-muted);
     }
@@ -2304,47 +2394,35 @@
       <!-- 右侧主区域 -->
       <div class="main-area">
         <div class="toolbar">
-          <!-- 标题已移至左侧栏 -->
-          <div class="toolbar-buttons">
-            <button class="tool-btn" @click="openUpgradeDialog">
-              <i class="el-icon-upload"></i>设备升级
-            </button>
-            <button class="tool-btn" @click="openLogDialog">
-              <i class="el-icon-document"></i>日志拉取
-            </button>
-            <button class="tool-btn" @click="openConsoleDrawer">
-              <i class="el-icon-monitor"></i>控制台
-            </button>
+          <!-- 模型选择、刷新、启动、停止功能移至此处 -->
+          <div class="bar-section" style="flex: 1;">
+            <span class="bar-label">模型选择</span>
+            <el-cascader v-model="selectedModelPath" :options="modelOptions" :props="{ expandTrigger: 'hover' }"
+              size="mini" clearable placeholder="请选择项目/模型" style="width: 280px;"></el-cascader>
+            <el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">
+              刷新
+            </el-button>
+            <el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning">
+              <el-radio-button label="model">模型</el-radio-button>
+              <el-radio-button label="regen">回灌</el-radio-button>
+            </el-radio-group>
+          </div>
+
+          <div class="bar-divider"></div>
+
+          <div class="bar-section">
+            <el-button size="mini" type="success" icon="el-icon-video-play" @click="startSelectedModel"
+              :disabled="!canStartSelected">
+              启动
+            </el-button>
+            <el-button size="mini" type="danger" icon="el-icon-video-pause" @click="stopSelectedModel"
+              :disabled="!canStopSelected">
+              停止
+            </el-button>
           </div>
         </div>
 
         <div class="content-area">
-          <!-- 顶部控制栏：模型选择 / 刷新 / 启动 / 停止 -->
-          <div class="model-control-bar">
-            <div class="bar-left">
-              <span class="bar-label">模型选择</span>
-              <el-cascader v-model="selectedModelPath" :options="modelOptions" :props="{ expandTrigger: 'hover' }"
-                size="mini" clearable placeholder="请选择项目/模型" style="width: 320px;"></el-cascader>
-              <el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">
-                刷新
-              </el-button>
-              <el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning">
-                <el-radio-button label="model">模型</el-radio-button>
-                <el-radio-button label="regen">回灌</el-radio-button>
-              </el-radio-group>
-            </div>
-            <div class="bar-right">
-              <el-button size="mini" type="success" icon="el-icon-video-play" @click="startSelectedModel"
-                :disabled="!canStartSelected">
-                启动
-              </el-button>
-              <el-button size="mini" type="danger" icon="el-icon-video-pause" @click="stopSelectedModel"
-                :disabled="!canStopSelected">
-                停止
-              </el-button>
-            </div>
-          </div>
-
           <div class="page-tabs">
             <button class="page-tab" :class="{ active: activePage === 'info' }"
               @click="activePage = 'info'">设备信息</button>
@@ -3377,6 +3455,25 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 右侧悬浮面板 -->
+    <div id="floating-panel" class="floating-panel">
+      <div class="floating-item" @click="openUpgradeDialog" title="设备升级">
+        <i class="el-icon-upload"></i>
+        <span>设备升级</span>
+      </div>
+      <div class="floating-item" @click="openLogDialog" title="日志拉取">
+        <i class="el-icon-document"></i>
+        <span>日志拉取</span>
+      </div>
+      <div class="floating-item" @click="openConsoleDrawer" title="控制台">
+        <i class="el-icon-monitor"></i>
+        <span>控制台</span>
+      </div>
+      <div class="drag-handle" title="上下拖动调整位置">
+        <i class="el-icon-rank"></i>
       </div>
     </div>
   </div>
@@ -7156,6 +7253,45 @@ current_output_gain:0.5`
             console.log('[模拟] ' + action.name, action.params);
             return fallback ? fallback() : { success: true };
           }
+        },
+        /**
+         * 初始化悬浮面板拖拽逻辑
+         */
+        initFloatingPanelDrag() {
+          const panel = document.getElementById('floating-panel');
+          const handle = panel.querySelector('.drag-handle');
+          let isDragging = false;
+          let startY = 0;
+          let startTop = 0;
+
+          handle.onmousedown = (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            startTop = panel.offsetTop;
+            document.body.style.cursor = 'grabbing';
+            panel.style.transition = 'none'; // 拖拽时禁用过渡
+          };
+
+          window.onmousemove = (e) => {
+            if (!isDragging) return;
+            const deltaY = e.clientY - startY;
+            let newTop = startTop + deltaY;
+
+            // 限制拖拽范围
+            const minTop = 50;
+            const maxTop = window.innerHeight - panel.offsetHeight - 50;
+            newTop = Math.max(minTop, Math.min(maxTop, newTop));
+
+            panel.style.top = `${newTop}px`;
+            panel.style.transform = 'none'; // 拖拽后清除居中定位偏移
+          };
+
+          window.onmouseup = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            document.body.style.cursor = '';
+            panel.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          };
         }
       },
       mounted() {
@@ -7176,6 +7312,11 @@ current_output_gain:0.5`
 
         // 加载设备规格配置
         this.loadDeviceSpecsConfig();
+
+        // 初始化悬浮面板拖拽
+        this.$nextTick(() => {
+          this.initFloatingPanelDrag();
+        });
 
         // 页面刷新时额外请求一次 get_connect_status
         window.addEventListener('beforeunload', () => {
