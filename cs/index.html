@@ -2137,93 +2137,89 @@
       display: block;
     }
 
-    /* 悬浮球样式 */
-    .floating-ball-container {
+    /* 侧边悬浮面板样式 */
+    .floating-panel {
       position: fixed;
-      right: 30px;
-      bottom: 30px;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
       z-index: 2000;
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-right: none;
+      border-radius: 12px 0 0 12px;
+      box-shadow: -4px 0 16px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
-      gap: 12px;
+      padding: 10px 6px;
+      gap: 15px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      width: 44px;
+      overflow: hidden;
     }
 
-    .floating-ball-menu {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 5px;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      transform: translateY(20px);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .floating-ball-container.active .floating-ball-menu {
-      transform: translateY(0);
-      opacity: 1;
-      pointer-events: auto;
+    .floating-panel:hover {
+      width: 140px;
+      padding: 12px;
+      box-shadow: -6px 0 24px rgba(139, 92, 246, 0.2);
+      border-color: var(--primary-light);
     }
 
     .floating-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      background: var(--bg-white);
-      padding: 8px 16px;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      border: 1px solid var(--border-color);
+      gap: 12px;
       cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
       transition: all 0.2s;
+      color: var(--text-secondary);
       white-space: nowrap;
     }
 
     .floating-item:hover {
       background: var(--primary-bg);
-      border-color: var(--primary-color);
-      transform: translateX(-5px);
+      color: var(--primary-color);
     }
 
     .floating-item i {
-      font-size: 16px;
-      color: var(--primary-color);
+      font-size: 20px;
+      flex-shrink: 0;
+      width: 24px;
+      text-align: center;
     }
 
     .floating-item span {
       font-size: 13px;
       font-weight: 500;
-      color: var(--text-primary);
+      opacity: 0;
+      transition: opacity 0.3s;
     }
 
-    .main-ball {
-      width: 56px;
-      height: 56px;
-      background: var(--primary-color);
-      color: white;
-      border-radius: 50%;
+    .floating-panel:hover .floating-item span {
+      opacity: 1;
+    }
+
+    .drag-handle {
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
-      box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
-      cursor: pointer;
-      transition: all 0.3s;
+      cursor: grab;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-light);
+      margin-bottom: 5px;
     }
 
-    .main-ball:hover {
-      transform: scale(1.1);
-      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.5);
+    .drag-handle:active {
+      cursor: grabbing;
     }
 
-    .floating-ball-container.active .main-ball {
-      transform: rotate(45deg);
-      background: var(--text-muted);
-    }
-
-    .main-ball i {
-      transition: transform 0.3s;
+    .drag-handle::before {
+      content: "•••";
+      letter-spacing: 2px;
+      font-size: 12px;
     }
 
     /* 顶部工具栏适配模型控制功能 */
@@ -2271,7 +2267,7 @@
                         'reg-modified': reg.modified, 
                         'reg-read-error': reg.readError,
                         'drag-over-row': dragOverRowIndex === index 
-                      }"><td class="reg-id" style="text-align: center;">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td><td class="reg-name">{{ reg.name }}</td><td style="text-align: center;"><el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">{{ reg.type === 'int' ? '数值' : '字符串' }}</el-tag></td><td style="text-align: center;"><el-tag size="mini" :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">{{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}</el-tag></td><td class="reg-value" :class="{ 'text-danger': reg.readError }"><template v-if="reg.access !== 'write'">{{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}</template><span v-else class="muted">--</span></td><td class="reg-write"><div v-if="reg.access !== 'read'" class="reg-input-wrap"><input v-if="reg.type === 'int'" type="number" class="reg-input" v-model.number="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'" :min="reg.min !== null ? reg.min : undefined" :max="reg.max !== null ? reg.max : undefined"/> <input v-else class="reg-input" v-model="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"/></div><span v-else class="muted">只读</span></td><td class="reg-desc"><div>{{ reg.description }}</div><div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">范围: {{ reg.min }} ~ {{ reg.max }}</div></td><td class="reg-actions"><el-button v-if="reg.access !== 'write'" size="mini" icon="el-icon-refresh" :loading="reg.loading" @click="readRegister(reg)">读取</el-button><el-button v-if="reg.access !== 'read'" size="mini" type="primary" icon="el-icon-upload2" :disabled="reg.inputValue === '' || reg.inputValue === null" @click="writeRegister(reg)">写入</el-button></td></tr></tbody></table><div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;"><i class="el-icon-folder-opened"></i><p>没有匹配的寄存器</p></div></div><div class="register-stats"><span>共 {{ registers.length }} 个寄存器</span> <span>|</span> <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span> <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span> <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span></div></div></div></div></div></div><div class="floating-ball-container" :class="{ active: floatingBallActive }"><div class="floating-ball-menu"><div class="floating-item" @click="openUpgradeDialog(); floatingBallActive = false"><i class="el-icon-upload"></i> <span>设备升级</span></div><div class="floating-item" @click="openLogDialog(); floatingBallActive = false"><i class="el-icon-document"></i> <span>日志拉取</span></div><div class="floating-item" @click="openConsoleDrawer(); floatingBallActive = false"><i class="el-icon-monitor"></i> <span>控制台</span></div></div><div class="main-ball" @click="floatingBallActive = !floatingBallActive" title="快捷菜单"><i class="el-icon-plus"></i></div></div></div><script>// 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
+                      }"><td class="reg-id" style="text-align: center;">0x{{ reg.address.toString(16).toUpperCase().padStart(4, '0') }}</td><td class="reg-name">{{ reg.name }}</td><td style="text-align: center;"><el-tag size="mini" :type="reg.type === 'int' ? '' : 'warning'">{{ reg.type === 'int' ? '数值' : '字符串' }}</el-tag></td><td style="text-align: center;"><el-tag size="mini" :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">{{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}</el-tag></td><td class="reg-value" :class="{ 'text-danger': reg.readError }"><template v-if="reg.access !== 'write'">{{ reg.readError ? '读取失败' : (reg.value !== null ? reg.value : '--') }}</template><span v-else class="muted">--</span></td><td class="reg-write"><div v-if="reg.access !== 'read'" class="reg-input-wrap"><input v-if="reg.type === 'int'" type="number" class="reg-input" v-model.number="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'" :min="reg.min !== null ? reg.min : undefined" :max="reg.max !== null ? reg.max : undefined"/> <input v-else class="reg-input" v-model="reg.inputValue" @keyup.enter="writeRegister(reg)" :placeholder="reg.access === 'write' ? '输入后写入' : '新值'"/></div><span v-else class="muted">只读</span></td><td class="reg-desc"><div>{{ reg.description }}</div><div v-if="reg.type === 'int' && reg.min !== null && reg.max !== null" class="reg-range">范围: {{ reg.min }} ~ {{ reg.max }}</div></td><td class="reg-actions"><el-button v-if="reg.access !== 'write'" size="mini" icon="el-icon-refresh" :loading="reg.loading" @click="readRegister(reg)">读取</el-button><el-button v-if="reg.access !== 'read'" size="mini" type="primary" icon="el-icon-upload2" :disabled="reg.inputValue === '' || reg.inputValue === null" @click="writeRegister(reg)">写入</el-button></td></tr></tbody></table><div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;"><i class="el-icon-folder-opened"></i><p>没有匹配的寄存器</p></div></div><div class="register-stats"><span>共 {{ registers.length }} 个寄存器</span> <span>|</span> <span>只读: {{ registers.filter(r => r.access === 'read').length }}</span> <span>只写: {{ registers.filter(r => r.access === 'write').length }}</span> <span>读写: {{ registers.filter(r => r.access === 'readwrite').length }}</span></div></div></div></div></div></div><div id="floating-panel" class="floating-panel"><div class="drag-handle" title="上下拖动调整位置"></div><div class="floating-item" @click="openUpgradeDialog" title="设备升级"><i class="el-icon-upload"></i> <span>设备升级</span></div><div class="floating-item" @click="openLogDialog" title="日志拉取"><i class="el-icon-document"></i> <span>日志拉取</span></div><div class="floating-item" @click="openConsoleDrawer" title="控制台"><i class="el-icon-monitor"></i> <span>控制台</span></div></div></div><script>// 参数编辑字典（由后端提供，见 /api/model/dictionary 或 WS action: model.dictionary）
     let modelDictionary = { parameters: {}, modules: {} };
 
     // ============================================================
@@ -2978,8 +2974,7 @@ current_output_gain:0.5`
         selectedModuleIndexForParam: -1, // 当前要添加参数的模块索引
         // 导入设备弹窗
         dialogImportDeviceVisible: false,
-        importDeviceType: 'current', // 'current' | 'all'
-        floatingBallActive: false
+        importDeviceType: 'current' // 'current' | 'all'
       },
       watch: {
         // 监听页签切换，停止定时刷新
@@ -6046,6 +6041,45 @@ current_output_gain:0.5`
             console.log('[模拟] ' + action.name, action.params);
             return fallback ? fallback() : { success: true };
           }
+        },
+        /**
+         * 初始化悬浮面板拖拽逻辑
+         */
+        initFloatingPanelDrag() {
+          const panel = document.getElementById('floating-panel');
+          const handle = panel.querySelector('.drag-handle');
+          let isDragging = false;
+          let startY = 0;
+          let startTop = 0;
+
+          handle.onmousedown = (e) => {
+            isDragging = true;
+            startY = e.clientY;
+            startTop = panel.offsetTop;
+            document.body.style.cursor = 'grabbing';
+            panel.style.transition = 'none'; // 拖拽时禁用过渡
+          };
+
+          window.onmousemove = (e) => {
+            if (!isDragging) return;
+            const deltaY = e.clientY - startY;
+            let newTop = startTop + deltaY;
+
+            // 限制拖拽范围
+            const minTop = 50;
+            const maxTop = window.innerHeight - panel.offsetHeight - 50;
+            newTop = Math.max(minTop, Math.min(maxTop, newTop));
+
+            panel.style.top = `${newTop}px`;
+            panel.style.transform = 'none'; // 拖拽后清除居中定位偏移
+          };
+
+          window.onmouseup = () => {
+            if (!isDragging) return;
+            isDragging = false;
+            document.body.style.cursor = '';
+            panel.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          };
         }
       },
       mounted() {
@@ -6066,6 +6100,11 @@ current_output_gain:0.5`
 
         // 加载设备规格配置
         this.loadDeviceSpecsConfig();
+
+        // 初始化悬浮面板拖拽
+        this.$nextTick(() => {
+          this.initFloatingPanelDrag();
+        });
 
         // 页面刷新时额外请求一次 get_connect_status
         window.addEventListener('beforeunload', () => {
