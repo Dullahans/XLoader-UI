@@ -1280,7 +1280,7 @@
     /* 参数行 - 增强版 */
     .param-row {
       display: grid;
-      grid-template-columns: 280px 1fr auto;
+      grid-template-columns: 280px minmax(0, 1fr) 80px; /* 使用 minmax(0, 1fr) 防止内容溢出列宽 */
       gap: 24px;
       align-items: start;
       padding: 12px 16px;
@@ -1399,6 +1399,8 @@
       color: var(--text-secondary);
       font-family: var(--font-mono);
       min-width: 45px;
+      flex-shrink: 0; /* 防止单位被挤压变形 */
+      margin-right: 4px; /* 与后续标签留出间距 */
     }
 
     .param-type-badge {
@@ -1408,6 +1410,7 @@
       background: var(--bg-gray);
       color: var(--text-muted);
       text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     /* 参数值超出范围警告 */
