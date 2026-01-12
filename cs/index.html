@@ -3607,11 +3607,14 @@ current_output_gain:0.5`
               this.runningModule = '';
             } else {
               this.isModelRunning = true;
-              this.runningFile = f;
-              // 修复：从 MFILE 寄存器值中提取模块名
+              // 修复：根据用户反馈，SEF3/Window_F 结构中，SEF3 是文件名，Window_F 是运行中的模块名
               const parts = f.split(/[\/\\]/);
-              if (parts.length > 0) {
-                this.runningModule = parts[parts.length - 1];
+              if (parts.length >= 2) {
+                this.runningFile = parts[0]; // 文件名（如 SEF3）
+                this.runningModule = parts[1]; // 模块名（如 Window_F）
+              } else {
+                this.runningFile = f;
+                this.runningModule = '';
               }
             }
           } catch (err) {
@@ -3743,6 +3746,7 @@ current_output_gain:0.5`
             if (!this.deviceConnected) {
               this.isModelRunning = false;
               this.runningFile = '';
+              this.runningModule = '';
             } else {
               // 直接使用 entry.running 和 entry.running_model，不使用缓存
               const isRunning = entry.running === true || String(entry.running).toLowerCase() === 'true';
@@ -3765,13 +3769,15 @@ current_output_gain:0.5`
                 !runningModel.toLowerCase().includes('example') &&
                 !isFailMfile(runningModel)) {
                 this.isModelRunning = true;
-                this.runningFile = runningModel;
                 
-                // 修复：从模型路径中提取模块名
-                // 路径结构通常为 "工程/模块" 或 "工程/子目录/模块"，取最后一部分
-                const parts = runningModel.split(/[\/\\]/); // 兼容正反斜杠
-                if (parts.length > 0) {
-                  this.runningModule = parts[parts.length - 1];
+                // 修复：根据用户反馈，SEF3/Window_F 结构中，SEF3 是文件名，Window_F 是运行中的模块名
+                const parts = runningModel.split(/[\/\\]/);
+                if (parts.length >= 2) {
+                  this.runningFile = parts[0]; // 文件名（如 SEF3）
+                  this.runningModule = parts[1]; // 模块名（如 Window_F）
+                } else {
+                  this.runningFile = runningModel;
+                  this.runningModule = '';
                 }
               } else {
                 this.isModelRunning = false;
@@ -4631,12 +4637,9 @@ current_output_gain:0.5`
         },
         isFileRunning(filename) {
           if (!this.isModelRunning || !this.runningFile || !filename) return false;
-          // 标准化路径和文件名，忽略正反斜杠差异及后缀名差异
-          const normalize = (s) => String(s).replace(/\\/g, '/').replace(/\.(bin|json)$/i, '');
-          const running = normalize(this.runningFile);
-          const current = normalize(filename);
-          // 匹配规则：完全一致，或者路径结尾匹配
-          return running === current || running.endsWith('/' + current) || current.endsWith('/' + running);
+          // 标准化处理：去掉路径前缀、忽略后缀差异
+          const normalize = (s) => String(s).split('/').pop().split('\\').pop().replace(/\.(bin|json)$/i, '');
+          return normalize(this.runningFile) === normalize(filename);
         },
         isModuleRunning(filename, moduleName) {
           return this.isFileRunning(filename) && this.runningModule === moduleName;
