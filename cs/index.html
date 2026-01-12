@@ -2137,7 +2137,7 @@
       display: block;
     }
 
-    /* 侧边悬浮面板样式 - 更加紧凑且现代 */
+    /* 侧边悬浮面板样式 - 极致紧凑且支持缩放 */
     .floating-panel {
       position: fixed;
       right: 0;
@@ -2147,18 +2147,21 @@
       background: var(--bg-white);
       border: 1px solid var(--border-color);
       border-right: none;
-      border-radius: 12px 0 0 12px; /* 圆角样式 */
-      box-shadow: -2px 0 12px rgba(0, 0, 0, 0.08);
+      border-radius: 10px 0 0 10px;
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
-      padding: 10px 6px;
-      gap: 10px;
+      padding: 6px 3px;
+      gap: 6px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
-      width: 44px; /* 默认宽度 */
+      width: 22px; /* 缩小至约一半 */
     }
 
     .floating-panel:hover {
+      width: 44px; /* 鼠标挪上去后放大到现在这个大小 */
+      padding: 10px 6px;
+      gap: 10px;
       box-shadow: -4px 0 20px rgba(139, 92, 246, 0.15);
       border-color: var(--primary-light);
     }
@@ -2169,11 +2172,17 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      width: 32px;
+      width: 16px; /* 初始小尺寸 */
+      height: 16px;
+      border-radius: 4px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--text-secondary);
+    }
+
+    .floating-panel:hover .floating-item {
+      width: 32px; /* 悬停时恢复尺寸 */
       height: 32px;
       border-radius: 8px;
-      transition: all 0.2s;
-      color: var(--text-secondary);
     }
 
     .floating-item:hover {
@@ -2182,12 +2191,16 @@
     }
 
     .floating-item i {
-      font-size: 20px;
-      transition: transform 0.2s;
+      font-size: 12px; /* 初始小图标 */
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .floating-panel:hover .floating-item i {
+      font-size: 20px; /* 悬停时图标放大 */
     }
 
     .floating-item:hover i {
-      transform: scale(1.25); /* 鼠标移入图标适当放大 */
+      transform: scale(1.2); 
     }
 
     .floating-item span {
