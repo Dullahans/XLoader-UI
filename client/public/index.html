@@ -1272,7 +1272,7 @@
     /* 参数行 - 增强版 */
     .param-row {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 280px 1fr auto;
       gap: 24px;
       align-items: start;
       padding: 12px 16px;
@@ -1318,7 +1318,6 @@
       background: rgba(139, 92, 246, 0.1);
       padding: 2px 8px;
       border-radius: 4px;
-      white-space: nowrap;
     }
 
     .param-desc {
@@ -1352,6 +1351,25 @@
       flex-direction: column;
       gap: 8px;
       min-width: 0;
+    }
+
+    .param-actions {
+      display: flex;
+      align-items: center;
+      padding-top: 4px;
+      justify-content: center;
+    }
+
+    .param-actions .delete-btn {
+      color: #909399;
+      padding: 5px;
+      transition: all 0.2s;
+    }
+
+    .param-actions .delete-btn:hover {
+      color: var(--error-color);
+      background: rgba(239, 68, 68, 0.05);
+      border-radius: 4px;
     }
 
     .param-input-row {
@@ -2926,12 +2944,9 @@
                                 <div class="param-name-row">
                                   <span class="param-key">{{ param.name }}</span>
                                   <span class="param-name-cn" v-if="getParamDef(param.name)">
-                                    {{ getParamDef(param.name).name }}
+                                    {{ getParamDef(param.name).description }}
                                   </span>
                                   <span class="param-unknown" v-else>未定义</span>
-                                </div>
-                                <div class="param-desc" v-if="getParamDef(param.name)">
-                                  {{ getParamDef(param.name).description }}
                                 </div>
                                 <div class="param-range"
                                   v-if="getParamDef(param.name) && getParamDef(param.name).min !== undefined">
@@ -3019,8 +3034,8 @@
                                 </template>
                               </div>
                               <!-- 删除参数按钮 -->
-                              <div class="param-actions" style="margin-left: 10px;">
-                                <el-button type="text" size="mini" icon="el-icon-delete"
+                              <div class="param-actions">
+                                <el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn"
                                   @click="handleRemoveParam(mi, pi)"
                                   :disabled="isModuleRunning(currentModel.filename, mod.name)"
                                   title="删除此参数"></el-button>
