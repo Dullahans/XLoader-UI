@@ -1067,6 +1067,11 @@
       border-radius: 3px 0 0 3px;
     }
 
+    .model-item.drag-over {
+      border: 2px dashed var(--primary-color);
+      background: var(--primary-bg);
+    }
+
     .model-item i {
       color: var(--text-muted);
       font-size: 16px;
@@ -2856,8 +2861,14 @@
                     <div v-for="(model, index) in models" :key="index" class="model-item" :class="{ 
                       active: activeModelIndex === index,
                       'has-error': model.errors && model.errors.length > 0,
-                      'is-running': isFileRunning(model.filename)
-                    }" @click="selectModel(index)">
+                      'is-running': isFileRunning(model.filename),
+                      'drag-over': dragOverModelIndex === index
+                    }" @click="selectModel(index)"
+                      draggable="true"
+                      @dragstart="handleModelDragStart($event, index)"
+                      @dragover.prevent="handleModelDragOver($event, index)"
+                      @dragleave="handleModelDragLeave($event)"
+                      @drop="handleModelDrop($event, index)">
                       <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
                       <div class="model-item-info">
                         <div class="model-item-name">{{ model.filename }}</div>
@@ -4056,6 +4067,7 @@ current_output_gain:0.5`
         newSheetName: '',
         dragOverRowIndex: null,
         dragOverTabIndex: null,
+        dragOverModelIndex: null,
         draggedRegName: '',
 
         // 右键菜单
@@ -4617,6 +4629,43 @@ current_output_gain:0.5`
           if (this.registerSheets[index].id === 'root') return;
           event.dataTransfer.setData('type', 'tab');
           event.dataTransfer.setData('fromTabIndex', index);
+        },
+        handleModelDragStart(event, index) {
+          event.dataTransfer.setData('type', 'model');
+          event.dataTransfer.setData('fromModelIndex', index);
+          // 视觉反馈
+          event.target.style.opacity = '0.5';
+          event.target.addEventListener('dragend', () => {
+            event.target.style.opacity = '1';
+          }, { once: true });
+        },
+        handleModelDragOver(event, index) {
+          this.dragOverModelIndex = index;
+        },
+        handleModelDragLeave(event) {
+          this.dragOverModelIndex = null;
+        },
+        handleModelDrop(event, targetIndex) {
+          this.dragOverModelIndex = null;
+          const type = event.dataTransfer.getData('type');
+          if (type !== 'model') return;
+
+          const fromIndex = parseInt(event.dataTransfer.getData('fromModelIndex'));
+          if (isNaN(fromIndex) || fromIndex === targetIndex) return;
+
+          // 记录当前选中的模型对象，以便在排序后恢复正确的激活索引
+          const activeModel = this.models[this.activeModelIndex];
+
+          // 重新排序 models 数组
+          const models = [...this.models];
+          const [movedModel] = models.splice(fromIndex, 1);
+          models.splice(targetIndex, 0, movedModel);
+          this.models = models;
+
+          // 恢复激活索引
+          if (activeModel) {
+            this.activeModelIndex = this.models.indexOf(activeModel);
+          }
         },
         handleDragOverRow(event, index) {
           if (this.activeSheetId === 'root') return;
