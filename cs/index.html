@@ -2140,14 +2140,13 @@
     /* 侧边悬浮面板样式 - 极致紧凑且支持缩放 */
     .floating-panel {
       position: fixed;
-      right: 0;
+      right: 8px; /* 稍微离开边缘，以显示右侧圆角 */
       top: 50%;
       transform: translateY(-50%);
       z-index: 2000;
       background: var(--bg-white);
       border: 1px solid var(--border-color);
-      border-right: none;
-      border-radius: 10px 0 0 10px;
+      border-radius: 10px; /* 全圆角样式 */
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
