@@ -3807,8 +3807,8 @@
       }
 
       // --- 26 应用参数到设备（apply_params_to_device） ---
-      applyParamsToDevice(device_id, loader_num, path, content) {
-        return this.request('apply_params_to_device', { device_id, loader_num, path, content });
+      applyParamsToDevice(device_id, loader_num, module_info) {
+        return this.request('apply_params_to_device', { device_id, loader_num, module_info });
       }
 
       // --- 27 停止所有定时器（stop_all_timers） ---
@@ -6269,16 +6269,33 @@ current_output_gain:0.5`
          * 【接口】WebSocket: apply_params_to_device
          */
         async handleApply() {
-          if (!this.canApply || !this.currentModel || !this.currentModel.path) return;
+          if (!this.canApply || !this.currentModel) return;
 
           try {
-            const content = this.generateBinContent();
+            // 获取当前正在运行的模块
+            if (!this.runningModule) {
+              this.$message.warning('当前没有运行中的模块，无法应用参数');
+              return;
+            }
+
+            const activeModule = this.currentModel.modules.find(m => m.name === this.runningModule);
+            if (!activeModule) {
+              this.$message.warning(`当前模型文件中未找到运行中的模块: ${this.runningModule}`);
+              return;
+            }
+
+            // 构建 module_info 字典：参数名 -> 参数值
+            const moduleInfo = {};
+            activeModule.params.forEach(p => {
+              moduleInfo[p.name] = p.value;
+            });
+
             if (this.wsConnected) {
-              await wsClient.applyParamsToDevice(this.device_id, this.loader_num, this.currentModel.path, content);
-              this.$message.success('参数已应用到设备');
+              await wsClient.applyParamsToDevice(this.device_id, this.loader_num, moduleInfo);
+              this.$message.success('参数已成功应用到运行模块');
             } else {
-              console.log('[模拟] 应用参数到设备:', this.currentModel.path);
-              this.$message.success('参数已应用到设备 (模拟)');
+              console.log('[模拟] 应用参数到设备模块:', this.runningModule, moduleInfo);
+              this.$message.success('参数已应用到模块 (模拟)');
             }
           } catch (err) {
             this.$message.error(`应用失败: ${err.message}`);
