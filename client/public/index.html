@@ -2544,11 +2544,10 @@
           </el-dialog>
 
           <!-- 工具弹窗：设备升级（socket.md 14/15） -->
-          <el-dialog title="设备升级（云端/近端）" :visible.sync="dialogUpgradeVisible" width="980px">
+          <el-dialog title="设备升级（云端/近端）" :visible.sync="dialogUpgradeVisible" width="1100px">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
               <div style="color: var(--text-muted); font-size: 12px;">
-                当前展示：loader 名称 / SN / 运行状态 / 当前版本（来自 get_connect_status）；
-                云端版本（需先点击“获取云端版本”）。
+                当前展示：loader 名称 / SN / 当前版本 / 云端版本。
               </div>
               <el-button size="mini" type="primary" icon="el-icon-refresh" @click="checkCloudNewVersion"
                 :loading="otaLoading" :disabled="!wsConnected">
@@ -2562,11 +2561,9 @@
             <el-table :data="upgradeRows" size="mini" border style="width: 100%;">
               <el-table-column prop="ip" label="IP" width="140"></el-table-column>
               <el-table-column prop="loader_name" label="Loader名称" width="140"></el-table-column>
-              <el-table-column prop="loader_num" label="编号" width="60"></el-table-column>
               <el-table-column prop="sn" label="SN号" width="140"></el-table-column>
-              <el-table-column prop="running_text" label="运行状态" width="90"></el-table-column>
-              <el-table-column prop="current_version" label="当前版本" width="140"></el-table-column>
-              <el-table-column label="云端版本" width="160">
+              <el-table-column prop="current_version" label="当前版本" width="120"></el-table-column>
+              <el-table-column label="云端版本" width="120">
                 <template slot-scope="scope">
                   <span v-if="scope.row.target_version">{{ scope.row.target_version }}</span>
                   <span v-else style="color: var(--text-muted);">
@@ -2575,13 +2572,13 @@
                   </span>
                 </template>
               </el-table-column>
-              <el-table-column label="进度" width="160">
+              <el-table-column label="进度" width="220">
                 <template slot-scope="scope">
                   <el-progress :percentage="Math.round(getOtaProgress(scope.row.ip, scope.row.loader_num))"
                     :status="getOtaProgressStatus(scope.row.ip, scope.row.loader_num)" :stroke-width="10"></el-progress>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" min-width="220">
+              <el-table-column label="操作" width="200">
                 <template slot-scope="scope">
                   <el-button size="mini" type="success" @click="openLocalUpgrade(scope.row)"
                     :disabled="!wsConnected">近端升级</el-button>
