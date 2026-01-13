@@ -79,13 +79,15 @@
     }
 
     .sidebar-header {
-      padding: 14px 16px;
+      height: var(--toolbar-height); /* 使用统一的高度变量 */
+      padding: 0 16px;
       border-bottom: 1px solid var(--border-color);
       font-size: 15px;
       font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
+      box-sizing: border-box; /* 显式设置确保对齐 */
     }
 
     .sidebar-title {
@@ -485,10 +487,10 @@
       margin-bottom: 6px;
     }
 
-    .device-sn {
-      font-size: 11px;
-      color: var(--primary-color);
-      font-family: var(--font-mono);
+    .device-sn { 
+      font-size: 11px; 
+      color: var(--primary-color); 
+      font-family: var(--font-mono); 
       background: var(--primary-bg);
       padding: 2px 6px;
       border-radius: 4px;
@@ -669,16 +671,6 @@
       min-width: 0;
     }
 
-    .toolbar {
-      height: var(--toolbar-height);
-      background: var(--bg-white);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      padding: 0 20px;
-      gap: 8px;
-    }
-
     .toolbar-title {
       font-size: 16px;
       font-weight: 600;
@@ -853,7 +845,7 @@
       font-size: 15px;
       font-weight: 600;
     }
-
+    
     .btn-group {
       display: flex;
       gap: 8px;
@@ -984,7 +976,7 @@
       border-color: var(--error-color);
       background: rgba(239, 68, 68, 0.05);
     }
-
+    
     .model-item.is-running {
       background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
       border-color: var(--running-color);
@@ -1067,14 +1059,14 @@
 
     .model-item-btns,
     .module-btns {
-      display: none;
-      margin-left: 4px;
-    }
+        display: none;
+        margin-left: 4px;
+      }
 
     .model-item:hover .model-item-btns,
     .module-header:hover .module-btns {
-      display: block;
-    }
+        display: block;
+      }
 
     .delete-btn {
       color: var(--error-color) !important;
@@ -1168,7 +1160,7 @@
     .module-info {
       flex: 1;
     }
-
+    
     .module-name-row {
       display: flex;
       align-items: center;
@@ -1247,7 +1239,7 @@
       transition: all 0.2s;
     }
 
-    .param-row:hover {
+    .param-row:hover { 
       background: #fcfaff;
       border-color: var(--primary-light);
       box-shadow: 0 2px 8px rgba(139, 92, 246, 0.08);
@@ -1581,7 +1573,7 @@
     /* ============================================
        设备信息页样式
     ============================================ */
-
+    
     .device-overview-card {
       display: flex;
       gap: 24px;
@@ -1863,7 +1855,7 @@
     /* ============================================
        寄存器管理页样式
     ============================================ */
-
+    
     .register-page {
       display: flex;
       flex-direction: column;
@@ -1919,7 +1911,7 @@
     .register-table tr.reg-modified {
       background: rgba(245, 158, 11, 0.08);
     }
-
+    
     .register-table tr.reg-read-error {
       background: rgba(239, 68, 68, 0.06);
     }
@@ -2066,7 +2058,7 @@
     .register-table tr.drag-over-row {
       border-top: 2px solid var(--primary-color);
     }
-
+    
     /* 页签增强样式 */
     .tab-label-zone {
       display: inline-block;
@@ -2287,14 +2279,14 @@
 
     /* 顶部工具栏适配模型控制功能 */
     .toolbar {
-      height: 52px; /* 调整高度与左侧 sidebar-header (14+24+14) 保持一致 */
+      height: var(--toolbar-height); /* 使用统一的高度变量 */
       background: var(--bg-white);
       border-bottom: 1px solid var(--border-color);
       display: flex;
       align-items: center;
       padding: 0 20px;
       gap: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      box-sizing: border-box; /* 显式设置确保对齐 */
     }
 
     .toolbar .bar-section {
@@ -2333,14 +2325,14 @@
             <span class="ws-indicator" :class="{ connected: wsConnected }"></span>
           </el-tooltip>
         </div>
-
+        
         <!-- 实验室选择（query_location_info） -->
         <div class="sidebar-section">
           <div class="section-title">
             <span>实验室</span>
             <el-tag v-if="!isLocationRegistered" size="mini" type="danger" effect="plain"
               style="font-weight: normal; transform: scale(0.85);">未注册</el-tag>
-          </div>
+              </div>
           <div style="display: flex; gap: 6px;">
             <el-select v-model="selectedLocation" size="mini" placeholder="请选择实验室" style="flex: 1;"
               @change="onLocationChanged">
@@ -2350,8 +2342,8 @@
             </el-select>
             <el-button size="mini" type="primary" icon="el-icon-check" circle @click="handleSaveLocation"
               title="保存实验室位置"></el-button>
+            </div>
           </div>
-        </div>
 
         <!-- lab / 机箱 / 设备列表（get_connect_status 推送） -->
         <div class="sidebar-scroll">
@@ -2359,7 +2351,7 @@
             <i class="el-icon-info"></i>
             <div>暂无状态数据</div>
             <div class="muted">等待 get_connect_status 推送…</div>
-          </div>
+              </div>
 
           <div v-for="lab in labView" :key="lab.labKey" class="lab-block">
             <div class="lab-header">
@@ -2376,10 +2368,10 @@
                   </div> -->
                   <div class="cabinet-row logo">
                     <img class="cabinet-logo" src="img/logo.png" alt="logo" />
-                  </div>
+        </div>
                   <div class="cabinet-row ip">
                     <span class="cabinet-ip-text">IP: {{ cab.ip }}</span>
-                  </div>
+          </div>
                   <div class="cabinet-body">
                     <div class="cabinet-device-grid">
                       <div v-for="dev in cab.devices" :key="dev.loader_num" class="device-item"
@@ -2389,15 +2381,15 @@
                           <img src="img/device.png" alt="device" />
                           <span class="rgb-dot" :class="deviceLedClass(dev)"></span>
                           <span class="device-index">{{ dev.loader_num + 1 }}</span>
-                        </div>
+        </div>
                         <div class="device-model" :title="dev.loader_name || dev.running_model || ''">
                           {{ dev.loader_name || dev.running_model || '—' }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        </div>
+          </div>
+          </div>
+        </div>
+          </div>
+            </div>
             </div>
           </div>
         </div>
@@ -2408,31 +2400,31 @@
         <div class="toolbar">
           <!-- 模型选择、刷新、启动、停止功能移至此处 -->
           <div class="bar-section" style="flex: 1;">
-            <span class="bar-label">模型选择</span>
+              <span class="bar-label">模型选择</span>
             <el-cascader v-model="selectedModelPath" :options="modelOptions" :props="{ expandTrigger: 'hover' }"
               size="mini" clearable placeholder="请选择项目/模型" style="width: 280px;"></el-cascader>
-            <el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">
-              刷新
-            </el-button>
-            <el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning">
-              <el-radio-button label="model">模型</el-radio-button>
-              <el-radio-button label="regen">回灌</el-radio-button>
-            </el-radio-group>
-          </div>
+              <el-button size="mini" icon="el-icon-refresh" @click="refreshModelOptions" :loading="modelOptionsLoading">
+                刷新
+              </el-button>
+              <el-radio-group v-model="runMode" size="mini" style="margin-left: 10px;" :disabled="isModelRunning">
+                <el-radio-button label="model">模型</el-radio-button>
+                <el-radio-button label="regen">回灌</el-radio-button>
+              </el-radio-group>
+            </div>
 
           <div class="bar-divider"></div>
 
           <div class="bar-section">
             <el-button size="mini" type="success" icon="el-icon-video-play" @click="startSelectedModel"
               :disabled="!canStartSelected">
-              启动
-            </el-button>
+                启动
+              </el-button>
             <el-button size="mini" type="danger" icon="el-icon-video-pause" @click="stopSelectedModel"
               :disabled="!canStopSelected">
-              停止
-            </el-button>
+                停止
+              </el-button>
+            </div>
           </div>
-        </div>
 
         <div class="content-area">
           <div class="page-tabs">
@@ -2520,10 +2512,10 @@
             </div>
             
             <div v-if="fetchTreeData && fetchTreeData.length" style="max-height: 500px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
-              <el-tree
+            <el-tree
                 :data="fetchTreeData"
-                node-key="label"
-                :props="{ label: 'label', children: 'children' }"
+              node-key="label"
+              :props="{ label: 'label', children: 'children' }"
                 :default-expand-all="false"
                 highlight-current
               >
@@ -2610,7 +2602,7 @@
               目标设备：{{ localUpgradeTarget.ip }} #{{ localUpgradeTarget.loader_num }}（{{ localUpgradeTarget.loader_name ||
               '' }}）
             </div>
-
+            
             <el-tabs v-model="localUpgradeTab" type="border-card">
               <el-tab-pane label="选择文件" name="file">
                 <div style="margin: 15px 0;">
@@ -2625,7 +2617,7 @@
                   </div>
                 </div>
               </el-tab-pane>
-
+              
               <el-tab-pane label="输入路径" name="path">
                 <div style="margin: 15px 0;">
                   <el-input v-model="localUpgradePath" placeholder="请输入 .hex 文件的绝对路径，例如：D:\workspace\aaa.hex"
@@ -2638,7 +2630,7 @@
                 </div>
               </el-tab-pane>
             </el-tabs>
-
+            
             <span slot="footer" class="dialog-footer">
               <el-button size="mini" @click="dialogLocalUpgradeVisible = false"
                 :disabled="localUpgradeLoading">取消</el-button>
@@ -2735,7 +2727,7 @@
                       {{ deviceConnected ? '在线' : '离线' }}
                     </el-tag>
                   </div>
-
+                  
                   <div class="device-info-grid">
                     <div class="info-item">
                       <span class="info-label">设备序列号</span>
@@ -2754,7 +2746,7 @@
                       <span class="info-value highlight">{{ deviceInfo.runTime || '--' }}</span>
                     </div>
                   </div>
-
+                  
                   <!-- 正在运行的模型 -->
                   <div class="running-model-info" v-if="deviceConnected && isModelRunning">
                     <div class="running-model-badge">
@@ -2776,7 +2768,7 @@
                   </div>
                 </div>
               </div>
-
+              
               <!-- 设备规格 -->
               <div class="spec-section">
                 <h4 class="section-title">
@@ -2822,7 +2814,7 @@
                   </div>
                 </div>
               </div>
-
+              
               <!-- 实时数据 -->
               <div class="realtime-section" v-if="deviceConnected">
                 <h4 class="section-title">
@@ -2889,9 +2881,9 @@
                     <i class="el-icon-download"></i>云端下载
                   </button>
                 </el-tooltip>
-
+                
                 <span class="btn-divider"></span>
-
+                
                 <el-tooltip content="从设备获取文件" placement="top">
                   <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadDevice">
                     <i class="el-icon-top"></i>模型导出
@@ -2902,9 +2894,9 @@
                     <i class="el-icon-bottom"></i>模型导入
                   </button>
                 </el-tooltip>
-
+                
                 <span class="btn-divider"></span>
-
+                
                 <el-tooltip content="保存到本地文件" placement="top" :open-delay="500">
                   <button class="action-btn primary" :disabled="!currentModel || !hasModified" @click="handleSave">
                     <i class="el-icon-folder-checked"></i>保存
@@ -2930,24 +2922,24 @@
                 <p style="margin-top: 20px; color: var(--text-secondary);">回灌模式下不支持参数编辑</p>
                 <p style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">请切换到"模型"模式进行参数编辑</p>
               </div>
-
+              
               <!-- 模型模式时显示编辑界面 -->
               <template v-else>
-                <div class="data-path">
-                  <i class="el-icon-folder"></i>
+              <div class="data-path">
+                <i class="el-icon-folder"></i>
                   <span>数据目录: wcar_resource/loader/model</span>
-                </div>
-
-                <div class="model-layout">
-                  <!-- 模型列表 -->
-                  <div class="model-list">
-                    <div class="model-list-header">
-                      <span>模型文件</span>
-                      <div style="display:flex; gap:5px; align-items:center;">
+              </div>
+              
+              <div class="model-layout">
+                <!-- 模型列表 -->
+                <div class="model-list">
+                  <div class="model-list-header">
+                    <span>模型文件</span>
+                    <div style="display:flex; gap:5px; align-items:center;">
                         <el-button type="text" size="mini" icon="el-icon-plus" @click="handleCreateNewModel"
                           title="新建模型文件"></el-button>
-                      </div>
                     </div>
+                  </div>
                     <div v-for="(model, index) in models" :key="index" class="model-item" :class="{ 
                       active: activeModelIndex === index,
                       'has-error': model.errors && model.errors.length > 0,
@@ -2959,45 +2951,45 @@
                       @dragover.prevent="handleModelDragOver($event, index)"
                       @dragleave="handleModelDragLeave($event)"
                       @drop="handleModelDrop($event, index)">
-                      <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
-                      <div class="model-item-info">
-                        <div class="model-item-name">{{ model.filename }}</div>
-                        <div class="model-item-size">{{ model.modules ? model.modules.length + ' 个模块' : '解析失败' }}</div>
-                      </div>
-                      <div class="model-item-btns" @click.stop>
+                    <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
+                    <div class="model-item-info">
+                      <div class="model-item-name">{{ model.filename }}</div>
+                      <div class="model-item-size">{{ model.modules ? model.modules.length + ' 个模块' : '解析失败' }}</div>
+                    </div>
+                    <div class="model-item-btns" @click.stop>
                         <el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn"
                           @click="handleDeleteModel(model, index)" v-if="!isFileRunning(model.filename)"
                           title="删除模型文件"></el-button>
-                      </div>
-                      <span v-if="isFileRunning(model.filename)" class="model-item-badge running" title="该模型正在运行中">
-                        <i class="el-icon-video-play"></i>
-                        <span>运行中</span>
-                      </span>
                     </div>
+                      <span v-if="isFileRunning(model.filename)" class="model-item-badge running" title="该模型正在运行中">
+                      <i class="el-icon-video-play"></i>
+                        <span>运行中</span>
+                    </span>
                   </div>
-
-                  <!-- 编辑器 -->
-                  <div class="model-editor" v-if="currentModel">
-                    <div class="editor-toolbar">
-                      <div class="editor-filename">
-                        <i class="el-icon-document"></i>
-                        <span>{{ currentModel.filename }}</span>
-                        <span class="modified-dot" v-if="hasModified"></span>
+                </div>
+                
+                <!-- 编辑器 -->
+                <div class="model-editor" v-if="currentModel">
+                  <div class="editor-toolbar">
+                    <div class="editor-filename">
+                      <i class="el-icon-document"></i>
+                      <span>{{ currentModel.filename }}</span>
+                      <span class="modified-dot" v-if="hasModified"></span>
                         <el-tag v-if="isFileRunning(currentModel.filename)" size="mini" type="warning" effect="dark"
                           style="margin-left:8px;">
-                          <i class="el-icon-video-play"></i> 运行中
-                        </el-tag>
-                      </div>
-                      <div style="display:flex; gap:10px;">
+                        <i class="el-icon-video-play"></i> 运行中
+                      </el-tag>
+                    </div>
+                    <div style="display:flex; gap:10px;">
                         <el-button type="text" size="mini" icon="el-icon-circle-plus-outline"
                           @click="handleOpenAddModuleDialog">
-                          添加模块
-                        </el-button>
-                        <el-button type="text" size="mini" icon="el-icon-view" @click="showRaw = !showRaw">
-                          {{ showRaw ? '编辑视图' : '原始内容' }}
-                        </el-button>
-                      </div>
+                        添加模块
+                      </el-button>
+                    <el-button type="text" size="mini" icon="el-icon-view" @click="showRaw = !showRaw">
+                      {{ showRaw ? '编辑视图' : '原始内容' }}
+                    </el-button>
                     </div>
+                  </div>
 
                     <!-- 错误和警告显示 -->
                     <div v-if="currentModel.errors && currentModel.errors.length"
@@ -3014,174 +3006,174 @@
                         • {{ wrn.message }} <span v-if="wrn.lineNum">(第 {{ wrn.lineNum }} 行)</span>
                       </div>
                     </div>
-
-                    <!-- 原始内容视图 -->
-                    <div v-if="showRaw" style="flex: 1; overflow: auto;">
+                  
+                  <!-- 原始内容视图 -->
+                  <div v-if="showRaw" style="flex: 1; overflow: auto;">
                       <pre
                         style="background: var(--bg-gray); padding: 12px; border-radius: 6px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap;">{{ currentModel.raw }}</pre>
-                    </div>
-
-                    <!-- 模块编辑视图 -->
-                    <div v-else style="flex: 1; overflow-y: auto;">
-                      <div v-if="currentModel.modules && currentModel.modules.length">
+                  </div>
+                  
+                  <!-- 模块编辑视图 -->
+                  <div v-else style="flex: 1; overflow-y: auto;">
+                    <div v-if="currentModel.modules && currentModel.modules.length">
                         <div v-for="(mod, mi) in currentModel.modules" :key="mi" class="module-section"
                           :class="{ 'is-running': isModuleRunning(currentModel.filename, mod.name) }">
-                          <div class="module-header" @click="toggleModule(mi)">
-                            <span class="module-toggle" :class="{ expanded: expandedModules[mi] }">
-                              <i class="el-icon-arrow-right"></i>
-                            </span>
-                            <div class="module-info">
-                              <div class="module-name-row">
-                                <span class="module-name">{{ mod.name }}</span>
+                        <div class="module-header" @click="toggleModule(mi)">
+                          <span class="module-toggle" :class="{ expanded: expandedModules[mi] }">
+                            <i class="el-icon-arrow-right"></i>
+                          </span>
+                          <div class="module-info">
+                            <div class="module-name-row">
+                              <span class="module-name">{{ mod.name }}</span>
                                 <span class="module-name-cn" v-if="getModuleDef(mod.name)">{{
                                   getModuleDef(mod.name).name }}</span>
-                              </div>
+                            </div>
                               <div class="module-desc" v-if="getModuleDef(mod.name)">{{
                                 getModuleDef(mod.name).description }}</div>
-                            </div>
-                            <span v-if="isModuleRunning(currentModel.filename, mod.name)" class="running-indicator">
-                              <i class="el-icon-video-play"></i> 运行中
-                            </span>
-                            <span class="module-count">{{ mod.params.length }} 参数</span>
-                            <div class="module-btns" @click.stop>
+                          </div>
+                          <span v-if="isModuleRunning(currentModel.filename, mod.name)" class="running-indicator">
+                            <i class="el-icon-video-play"></i> 运行中
+                          </span>
+                          <span class="module-count">{{ mod.params.length }} 参数</span>
+                          <div class="module-btns" @click.stop>
                               <el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn"
                                 @click="handleRemoveModule(mi)" v-if="!isModuleRunning(currentModel.filename, mod.name)"
                                 title="删除此模块"></el-button>
-                            </div>
                           </div>
-                          <div class="module-body" :class="{ expanded: expandedModules[mi] }">
-                            <!-- 添加参数按钮 -->
+                        </div>
+                        <div class="module-body" :class="{ expanded: expandedModules[mi] }">
+                          <!-- 添加参数按钮 -->
                             <div v-if="expandedModules[mi]"
                               style="padding: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 8px;">
                               <el-button type="text" size="mini" icon="el-icon-plus"
-                                @click="handleOpenAddParamDialog(mi)"
+                              @click="handleOpenAddParamDialog(mi)"
                                 :disabled="isModuleRunning(currentModel.filename, mod.name)">
-                                添加参数
-                              </el-button>
-                            </div>
+                              添加参数
+                            </el-button>
+                          </div>
                             <div v-for="(param, pi) in mod.params" :key="pi" class="param-row"
                               :class="{ 'out-of-range': isOutOfRange(param) }">
-                              <div class="param-label-section">
-                                <div class="param-name-row">
-                                  <span class="param-key">{{ param.name }}</span>
-                                  <span class="param-name-cn" v-if="getParamDef(param.name)">
+                            <div class="param-label-section">
+                              <div class="param-name-row">
+                                <span class="param-key">{{ param.name }}</span>
+                                <span class="param-name-cn" v-if="getParamDef(param.name)">
                                     {{ getParamDef(param.name).description }}
-                                  </span>
-                                  <span class="param-unknown" v-else>未定义</span>
-                                </div>
+                                </span>
+                                <span class="param-unknown" v-else>未定义</span>
+                              </div>
                                 <div class="param-range"
                                   v-if="getParamDef(param.name) && getParamDef(param.name).min !== undefined">
-                                  <i class="el-icon-info"></i>
-                                  范围: {{ getParamDef(param.name).min }} ~ {{ getParamDef(param.name).max }}
-                                  <span v-if="getParamDef(param.name).default !== undefined">
-                                    (默认: {{ getParamDef(param.name).default }})
-                                  </span>
-                                </div>
+                                <i class="el-icon-info"></i>
+                                范围: {{ getParamDef(param.name).min }} ~ {{ getParamDef(param.name).max }}
+                                <span v-if="getParamDef(param.name).default !== undefined">
+                                  (默认: {{ getParamDef(param.name).default }})
+                                </span>
                               </div>
-
-                              <div class="param-input-section">
-                                <!-- 单值 -->
-                                <template v-if="param.type === 'single'">
-                                  <div class="param-input-row">
+                            </div>
+                            
+                            <div class="param-input-section">
+                              <!-- 单值 -->
+                              <template v-if="param.type === 'single'">
+                                <div class="param-input-row">
                                     <el-input-number v-if="isNumericParam(param)" :value="param.value" size="mini"
-                                      controls-position="right"
-                                      :min="getParamDef(param.name) ? getParamDef(param.name).min : -Infinity"
-                                      :max="getParamDef(param.name) ? getParamDef(param.name).max : Infinity"
-                                      :step="getParamDef(param.name) ? (getParamDef(param.name).step || 1) : 1"
-                                      :precision="getPrecision(param.name)"
+                                    controls-position="right"
+                                    :min="getParamDef(param.name) ? getParamDef(param.name).min : -Infinity"
+                                    :max="getParamDef(param.name) ? getParamDef(param.name).max : Infinity"
+                                    :step="getParamDef(param.name) ? (getParamDef(param.name).step || 1) : 1"
+                                    :precision="getPrecision(param.name)"
                                       @change="updateSingleParam(param, $event)"></el-input-number>
                                     <el-input v-else v-model="param.value" size="mini"
                                       @input="hasModified = true"></el-input>
                                     <span class="param-unit">{{ getParamDef(param.name) ? getParamDef(param.name).unit :
                                       '' }}</span>
-                                    <span class="param-type-badge">{{ param.type }}</span>
-                                  </div>
-                                  <div class="range-warning" v-if="isOutOfRange(param)">
-                                    <i class="el-icon-warning"></i>
-                                    值超出建议范围
-                                  </div>
-                                </template>
-
-                                <!-- 数组 -->
-                                <template v-else-if="param.type === 'array'">
-                                  <div class="array-display">
-                                    <div class="array-header">
-                                      <span class="array-label">数组 [{{ param.value.length }}]</span>
+                                  <span class="param-type-badge">{{ param.type }}</span>
+                                </div>
+                                <div class="range-warning" v-if="isOutOfRange(param)">
+                                  <i class="el-icon-warning"></i>
+                                  值超出建议范围
+                                </div>
+                              </template>
+                              
+                              <!-- 数组 -->
+                              <template v-else-if="param.type === 'array'">
+                                <div class="array-display">
+                                  <div class="array-header">
+                                    <span class="array-label">数组 [{{ param.value.length }}]</span>
                                       <el-button type="text" size="mini" icon="el-icon-plus"
                                         @click="addArrayItem(param)"></el-button>
-                                    </div>
-                                    <div class="array-items">
-                                      <div v-for="(item, idx) in param.value" :key="idx" class="array-item">
-                                        <span class="array-index">[{{ idx }}]</span>
+                                  </div>
+                                  <div class="array-items">
+                                    <div v-for="(item, idx) in param.value" :key="idx" class="array-item">
+                                      <span class="array-index">[{{ idx }}]</span>
                                         <el-input-number v-if="typeof item === 'number'" :value="item" size="mini"
-                                          controls-position="right"
+                                        controls-position="right"
                                           @change="updateArrayItem(param, idx, $event)"></el-input-number>
                                         <el-input v-else :value="item" size="mini"
                                           @input="updateArrayItemStr(param, idx, $event)"></el-input>
                                         <el-button type="text" size="mini" icon="el-icon-delete"
                                           @click="removeArrayItem(param, idx)"></el-button>
-                                      </div>
                                     </div>
                                   </div>
-                                </template>
-
-                                <!-- 矩阵 -->
-                                <template v-else-if="param.type === 'matrix'">
-                                  <div class="matrix-display">
-                                    <div class="matrix-toolbar">
+                                </div>
+                              </template>
+                              
+                              <!-- 矩阵 -->
+                              <template v-else-if="param.type === 'matrix'">
+                                <div class="matrix-display">
+                                  <div class="matrix-toolbar">
                                       <span class="matrix-size">{{ param.value.length }} × {{ param.value[0] ?
                                         param.value[0].length : 0 }}</span>
                                       <el-button type="text" size="mini" icon="el-icon-plus"
                                         @click="addMatrixRow(param)">添加行</el-button>
-                                    </div>
-                                    <div class="matrix-table">
+                                  </div>
+                                  <div class="matrix-table">
                                       <div class="matrix-header"
                                         v-if="getParamDef(param.name) && getParamDef(param.name).columns">
-                                        <span class="matrix-row-index">#</span>
+                                      <span class="matrix-row-index">#</span>
                                         <span v-for="(col, ci) in getParamDef(param.name).columns" :key="ci"
                                           class="matrix-header-cell">{{ col }}</span>
-                                        <span class="matrix-action-cell"></span>
-                                      </div>
-                                      <div v-for="(row, ri) in param.value" :key="ri" class="matrix-row">
-                                        <span class="matrix-row-index">{{ ri }}</span>
+                                      <span class="matrix-action-cell"></span>
+                                    </div>
+                                    <div v-for="(row, ri) in param.value" :key="ri" class="matrix-row">
+                                      <span class="matrix-row-index">{{ ri }}</span>
                                         <el-input-number v-for="(cell, ci) in row" :key="ci" :value="cell" size="mini"
                                           controls-position="right" class="matrix-cell-input"
                                           @change="updateMatrixCell(param, ri, ci, $event)"></el-input-number>
                                         <el-button type="text" size="mini" icon="el-icon-delete"
                                           class="matrix-delete-btn" @click="removeMatrixRow(param, ri)"></el-button>
-                                      </div>
                                     </div>
                                   </div>
-                                </template>
-                              </div>
-                              <!-- 删除参数按钮 -->
+                                </div>
+                              </template>
+                            </div>
+                            <!-- 删除参数按钮 -->
                               <div class="param-actions">
                                 <el-button type="text" size="mini" icon="el-icon-delete" class="delete-btn"
-                                  @click="handleRemoveParam(mi, pi)"
-                                  :disabled="isModuleRunning(currentModel.filename, mod.name)"
+                                @click="handleRemoveParam(mi, pi)"
+                                :disabled="isModuleRunning(currentModel.filename, mod.name)"
                                   title="删除此参数"></el-button>
-                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      <div v-else class="empty-state">
-                        <i class="el-icon-warning-outline"></i>
-                        <p>该文件解析失败</p>
-                      </div>
                     </div>
-                  </div>
-
-                  <div v-else class="model-editor">
-                    <div class="empty-state" style="height: 100%;">
-                      <i class="el-icon-folder-opened"></i>
-                      <p>请从左侧选择一个模型文件</p>
+                    
+                    <div v-else class="empty-state">
+                      <i class="el-icon-warning-outline"></i>
+                      <p>该文件解析失败</p>
                     </div>
                   </div>
                 </div>
+                
+                <div v-else class="model-editor">
+                  <div class="empty-state" style="height: 100%;">
+                    <i class="el-icon-folder-opened"></i>
+                    <p>请从左侧选择一个模型文件</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            </template>
+              </template>
           </div>
 
           <!-- 弹窗：新建模型文件 -->
@@ -3254,11 +3246,11 @@
           <el-dialog title="资源导入设备" :visible.sync="dialogImportDeviceVisible" width="600px">
             <div style="margin-bottom: 15px;">
               <el-radio-group v-model="importDeviceType" size="mini">
-                <el-radio label="current">导入当前设备</el-radio>
+                  <el-radio label="current">导入当前设备</el-radio>
                 <!-- 暂时隐藏导入所有设备功能 -->
                 <!-- <el-radio label="all">导入所有设备</el-radio> -->
-              </el-radio-group>
-            </div>
+                </el-radio-group>
+                </div>
 
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px;">
               <div style="color: var(--text-muted); font-size: 12px;">
@@ -3326,7 +3318,7 @@
                 <el-button size="mini" type="text" icon="el-icon-plus" style="margin-left: 10px; padding: 8px;"
                   @click="handleSheetAdd" title="新建页签（上限5个）"></el-button>
               </div>
-
+              
               <!-- 当前 Sheet 的控制项 (仅非 root sheet 显示自动刷新开关) -->
               <div v-if="activeSheetId !== 'root'"
                 style="padding: 8px 12px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px; background: #f8fafc;">
@@ -3408,7 +3400,7 @@
                         </el-tag>
                       </td>
                       <td style="text-align: center;">
-                        <el-tag size="mini"
+                        <el-tag size="mini" 
                           :type="reg.access === 'read' ? 'info' : (reg.access === 'write' ? 'danger' : 'success')">
                           {{ reg.access === 'read' ? '只读' : (reg.access === 'write' ? '只写' : '读写') }}
                         </el-tag>
@@ -3449,13 +3441,13 @@
                     </tr>
                   </tbody>
                 </table>
-
+                
                 <div v-if="filteredRegisters.length === 0" class="empty-state" style="padding: 40px;">
                   <i class="el-icon-folder-opened"></i>
                   <p>没有匹配的寄存器</p>
                 </div>
               </div>
-
+              
               <!-- 寄存器统计 -->
               <div class="register-stats">
                 <span>共 {{ registers.length }} 个寄存器</span>
@@ -3528,10 +3520,10 @@
           if (window.WS_URL) {
             url = window.WS_URL;
           } else {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.hostname;
-            // Python WS 固定端口
-            url = `${protocol}//${host}:28657/ws`;
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          const host = window.location.hostname;
+          // Python WS 固定端口
+          url = `${protocol}//${host}:28657/ws`;
           }
         }
         this.url = url;
@@ -3620,7 +3612,7 @@
 
         this.reconnectAttempts++;
         console.log(`[WS] 尝试重连 (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-
+        
         setTimeout(() => {
           this.connect().catch(() => { });
         }, this.reconnectInterval);
@@ -3654,7 +3646,7 @@
             this.emit('anonymous.array', message);
             return;
           }
-
+          
           // 处理响应消息
           // 兼容：cmd_id 可能返回为字符串或数字
           const rawCmdId = message.cmd_id ?? message.id;
@@ -3664,25 +3656,25 @@
             const { resolve, reject, timer } = this.pendingRequests.get(cmdId);
             clearTimeout(timer);
             this.pendingRequests.delete(cmdId);
-
+            
             // 兼容 socket.md：响应可能是 { topic, cmd_id, name, data: {...} } 或直接是数据
             // data 字段可能是字符串 JSON 或对象或数组
             let responseData = message;
             if (message.data !== undefined) {
               if (typeof message.data === 'string') {
-                try {
+                try { 
                   const parsed = JSON.parse(message.data);
                   // 如果解析后是数组（如 get_signals），直接返回数组
                   responseData = parsed;
-                } catch (e) {
-                  responseData = message.data;
+                } catch (e) { 
+                  responseData = message.data; 
                 }
               } else {
                 // 如果 data 是数组（如 get_signals），直接返回数组
                 responseData = message.data;
               }
             }
-
+            
             // 兼容：success=false / ok=false / code!=0
             const ok = (responseData.success !== false) && (responseData.ok !== false) && (responseData.code === undefined || responseData.code === 0);
             if (!ok && responseData.success === false) {
@@ -4024,12 +4016,12 @@
       }
 
       try {
-        const resp = await fetch('/api/bin/parse', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: filePath })
-        });
-        return await resp.json();
+      const resp = await fetch('/api/bin/parse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: filePath })
+      });
+      return await resp.json();
       } catch (err) {
         return { success: false, error: err.message };
       }
@@ -4188,7 +4180,7 @@ current_output_gain:0.5`
         registerLoading: false,
         registers: [],
         registerDefsAll: [],
-
+        
         // 寄存器分Sheet管理
         activeSheetId: 'root',
         registerSheets: [
@@ -4200,15 +4192,15 @@ current_output_gain:0.5`
         dragOverTabIndex: null,
         dragOverModelIndex: null,
         draggedRegName: '',
-
+        
         // 右键菜单
         contextMenuVisible: false,
         contextMenuPos: { x: 0, y: 0 },
         contextMenuReg: null,
-
+        
         // 参数编辑变量字典（参数/模块定义）
         modelDictionary: { parameters: {}, modules: {} },
-
+        
         // 新增文件/模块弹窗
         dialogNewModelVisible: false,
         newModelFilename: '',
@@ -4233,7 +4225,7 @@ current_output_gain:0.5`
             } catch (err) {
               console.error('[Sheet] 停止定时刷新失败:', err);
             }
-
+            
             // 清除旧页签的定时器标记
             const oldSheet = this.registerSheets.find(s => s.id === oldId);
             if (oldSheet && oldSheet.timerEnabled) {
@@ -4332,9 +4324,9 @@ current_output_gain:0.5`
         },
         currentModel() { return this.models[this.activeModelIndex] || null; },
         canApply() {
-          return this.deviceConnected && this.isModelRunning &&
-            this.currentModel && this.currentModel.success &&
-            this.isFileRunning(this.currentModel.filename);
+          return this.deviceConnected && this.isModelRunning && 
+                 this.currentModel && this.currentModel.success &&
+                 this.isFileRunning(this.currentModel.filename);
         },
         canStartSelected() {
           return Array.isArray(this.selectedModelPath) && this.selectedModelPath.length >= 2;
@@ -4356,19 +4348,19 @@ current_output_gain:0.5`
         availableParamsForModule() {
           // 获取当前模块允许的参数列表
           if (this.selectedModuleIndexForParam < 0 || !this.currentModel || !this.currentModel.modules) return [];
-
+          
           const module = this.currentModel.modules[this.selectedModuleIndexForParam];
           if (!module || !this.modelDictionary || !this.modelDictionary.modules) return [];
-
+          
           const modDef = this.modelDictionary.modules[module.name];
           if (!modDef) return [];
-
+          
           // 获取模块允许的参数ID列表
           const allowedIds = modDef.allowed_param_ids || [];
-
+          
           // 获取已存在的参数名称
           const existingParamNames = new Set(module.params.map(p => p.name));
-
+          
           // 从参数字典中筛选出允许的参数
           const params = [];
           if (this.modelDictionary.parameters) {
@@ -4386,10 +4378,10 @@ current_output_gain:0.5`
               }
             });
           }
-
+          
           // 按ID排序
           params.sort((a, b) => a.id - b.id);
-
+          
           return params;
         },
         currentSimType() {
@@ -4424,7 +4416,7 @@ current_output_gain:0.5`
           // 展示 upgrade 弹窗的数据：以 get_connect_status 为主，云端版本来自 otaCloudMap（没获取就为空）
           const rows = [];
           const raw = this.connectStatus && typeof this.connectStatus === 'object' ? this.connectStatus : {};
-
+          
           const processDevice = (d) => {
             if (!d || d.ip === undefined || d.loader_num === undefined) return;
             const ip = String(d.ip);
@@ -4469,7 +4461,7 @@ current_output_gain:0.5`
             // 处理每一个机箱/主机节点
             for (const item of list) {
               if (!item) continue;
-
+              
               let ip = 'unknown';
               let devicesRaw = [];
 
@@ -4487,7 +4479,7 @@ current_output_gain:0.5`
                   cabinets.push(cab);
                 }
                 this.fillSlot(cab.devices, item, ip);
-                continue;
+                continue; 
               }
 
               // 新格式的处理
@@ -4655,7 +4647,7 @@ current_output_gain:0.5`
           // 注意：el-switch 的 @change 事件会在 v-model 更新后触发
           // 所以这里 sheet.timerEnabled 已经是新值了
           const shouldEnable = sheet.timerEnabled;
-
+          
           if (!shouldEnable) {
             // 关闭当前定时刷新
             sheet.timerId = null;
@@ -4690,7 +4682,7 @@ current_output_gain:0.5`
                 }
               }
             }
-
+            
             // 启动新的定时刷新
             this.$set(sheet, 'timerEnabled', true);
             this.startSheetTimer(sheet);
@@ -4703,19 +4695,19 @@ current_output_gain:0.5`
             clearInterval(sheet.timerId);
             sheet.timerId = null;
           }
-
+          
           // 如果 WebSocket 未连接或设备未连接，不启动定时器
           if (!this.wsConnected || !this.deviceConnected) {
             return;
           }
-
+          
           const names = sheet.id === 'root' ? this.registers.map(r => r.name) : sheet.registerNames;
           if (!names.length) {
             return;
           }
-
+          
           const period = sheet.timerInterval || 5000;
-
+          
           try {
             // 使用第31条接口启动定时刷新
             wsClient.scheduleRefreshSignals(this.device_id, this.loader_num, names, period).then(() => {
@@ -4731,12 +4723,12 @@ current_output_gain:0.5`
           if (!this.deviceConnected) return;
           const names = sheet.id === 'root' ? this.registers.map(r => r.name) : sheet.registerNames;
           if (!names.length) return;
-
+          
           try {
             // 使用第6条接口批量获取寄存器值（单次刷新）
             const resp = await wsClient.getSignals(this.device_id, this.loader_num, names);
             const m = this.signalsToMap(resp);
-
+            
             // 更新寄存器值
             this.registers.forEach(reg => {
               if (names.includes(reg.name) && m.has(reg.name)) {
@@ -4821,10 +4813,10 @@ current_output_gain:0.5`
           // 同一 Sheet 内排序：需映射回原始 registerNames 的索引
           const sheet = this.currentSheet;
           const names = [...sheet.registerNames];
-
+          
           const targetReg = this.filteredRegisters[targetIndex];
           if (!targetReg) return;
-
+          
           const realFromIndex = names.indexOf(regName);
           const realTargetIndex = names.indexOf(targetReg.name);
 
@@ -4845,7 +4837,7 @@ current_output_gain:0.5`
             // 页签排序
             const fromIndex = parseInt(event.dataTransfer.getData('fromTabIndex'));
             if (isNaN(fromIndex) || fromIndex === targetIndex || targetSheet.id === 'root') return;
-
+            
             const sheets = [...this.registerSheets];
             const [moved] = sheets.splice(fromIndex, 1);
             sheets.splice(targetIndex, 0, moved);
@@ -4856,7 +4848,7 @@ current_output_gain:0.5`
             const regName = event.dataTransfer.getData('regName');
             const fromSheetId = event.dataTransfer.getData('fromSheetId');
             if (!regName || fromSheetId === targetSheet.id) return;
-
+            
             if (!targetSheet.registerNames.includes(regName)) {
               targetSheet.registerNames.push(regName);
               this.saveRegisterSheets();
@@ -4864,13 +4856,13 @@ current_output_gain:0.5`
             }
           }
         },
-
+        
         // --- 右键菜单 ---
         showContextMenu(event, reg) {
           this.contextMenuReg = reg;
           this.contextMenuPos = { x: event.clientX, y: event.clientY };
           this.contextMenuVisible = true;
-
+          
           const hideMenu = () => {
             this.contextMenuVisible = false;
             document.removeEventListener('click', hideMenu);
@@ -4944,7 +4936,7 @@ current_output_gain:0.5`
             const f = mfile !== undefined && mfile !== null ? String(mfile).trim() : '';
             const k = this.otaKey(this.device_id, this.loader_num);
             this.$set(this.deviceSignalCache, k, { ...(this.deviceSignalCache[k] || {}), MFILE: f });
-
+            
             // 关键修复：只有当 MFILE 不为空 且 不是占位符 时才认为在运行
             // 特殊规则：如果包含"->"，检查"->"之前的内容是否为"FAIL:MFILE"，如果是则模型未运行
             const isFailMfile = (str) => {
@@ -4957,7 +4949,7 @@ current_output_gain:0.5`
               }
               return false;
             };
-
+            
             if (!f || f.toLowerCase().includes('example') || isFailMfile(f)) {
               this.isModelRunning = false;
               this.runningFile = '';
@@ -4970,11 +4962,11 @@ current_output_gain:0.5`
                 this.runningFile = parts[0]; // 文件名（如 SEF3）
                 this.runningModule = parts[1]; // 模块名（如 Window_F）
               } else {
-                this.runningFile = f;
+              this.runningFile = f;
                 this.runningModule = '';
               }
             }
-          } catch (err) {
+                  } catch (err) {
             // 读信号失败时，不应继续显示“运行中”
             this.isModelRunning = false;
             this.runningFile = '';
@@ -4997,16 +4989,16 @@ current_output_gain:0.5`
           // 灰：未连接；绿：已连接/停止运行；蓝：运行中；红蓝闪烁：OTA升级中；红：异常
           const connected = dev && this.toBool(dev.connect);
           if (!connected) return '';
-
+          
           // 检查是否正在OTA升级（只有状态为 'running' 时才显示升级状态）
           const k = this.getDeviceKey(dev);
           const otaSt = this.otaStatus[k];
           const isUpgrading = otaSt && otaSt.status === 'running';
           if (isUpgrading) return 'upgrading';
-
+          
           const abnormal = this.toBool(dev.interrupt) || this.toBool(dev.high_temp_alarm) || this.toBool(dev.busy);
           if (abnormal) return 'alarm';
-
+          
           // 运行中：蓝色；停止运行：绿色
           const running = this.toBool(dev.running);
           if (running) return 'running';
@@ -5021,14 +5013,14 @@ current_output_gain:0.5`
         },
         async selectDevice(dev) {
           if (!dev) return;
-
+          
           // 记录切换前的设备信息
           const oldDeviceId = this.device_id;
           const oldLoaderNum = this.loader_num;
-
+          
           // 检查是否有页签开启了定时刷新
           const activeSheet = this.registerSheets.find(s => s.timerEnabled);
-
+          
           // 切换设备时，停止原设备的定时刷新寄存器
           if (this.wsConnected && activeSheet) {
             try {
@@ -5038,7 +5030,7 @@ current_output_gain:0.5`
               console.error('[Device] 停止定时刷新失败:', err);
             }
           }
-
+          
           // 更新选择（并同步影响顶部 start/stop/get_models 的目标设备）
           this.selectedDeviceKey = this.getDeviceKey(dev);
           if (dev.ip) this.device_id = String(dev.ip);
@@ -5047,7 +5039,7 @@ current_output_gain:0.5`
           this.deviceConnected = !!dev.connect;
           // 直接从 connectStatus 中同步设备信息，不需要请求寄存器
           this.syncDeviceInfoFromStatus(dev);
-
+          
           // 如果切换了设备，且之前有页签开启了定时刷新，需要在新设备上重新启动
           if (activeSheet && (oldDeviceId !== this.device_id || oldLoaderNum !== this.loader_num)) {
             // 清除所有页签的定时器标记
@@ -5057,7 +5049,7 @@ current_output_gain:0.5`
                 this.$set(s, 'timerEnabled', false);
               }
             });
-
+            
             // 在新设备上重新启动当前活动页签的定时刷新
             if (this.deviceConnected && this.wsConnected && activeSheet.id === this.activeSheetId) {
               // 延迟一下，确保设备切换完成
@@ -5077,7 +5069,7 @@ current_output_gain:0.5`
             });
           }
         },
-
+        
         /**
          * 从 get_connect_status 推送消息中同步设备信息（不请求寄存器）
          * 直接使用推送消息中的 running_model 和 running 字段
@@ -5098,7 +5090,7 @@ current_output_gain:0.5`
             };
             if (entry.sn) this.deviceSN = String(entry.sn);
             if (entry.name) this.deviceNameFromRegister = String(entry.name);
-
+            
             // 直接使用推送消息中的 running 和 running_model 字段判断运行状态
             if (!this.deviceConnected) {
               this.isModelRunning = false;
@@ -5108,7 +5100,7 @@ current_output_gain:0.5`
               // 直接使用 entry.running 和 entry.running_model，不使用缓存
               const isRunning = entry.running === true || String(entry.running).toLowerCase() === 'true';
               const runningModel = entry.running_model || '';
-
+              
               // 判断是否真的在运行：running 为 true 且 running_model 不为空且不是占位符
               // 特殊规则：如果包含"->"，检查"->"之前的内容是否为"FAIL:MFILE"，如果是则模型未运行
               const isFailMfile = (str) => {
@@ -5121,10 +5113,10 @@ current_output_gain:0.5`
                 }
                 return false;
               };
-
-              if (isRunning && runningModel &&
-                !runningModel.toLowerCase().includes('example') &&
-                !isFailMfile(runningModel)) {
+              
+              if (isRunning && runningModel && 
+                  !runningModel.toLowerCase().includes('example') && 
+                  !isFailMfile(runningModel)) {
                 this.isModelRunning = true;
                 
                 // 修复：根据用户反馈，SEF3/Window_F 结构中，SEF3 是文件名，Window_F 是运行中的模块名
@@ -5133,7 +5125,7 @@ current_output_gain:0.5`
                   this.runningFile = parts[0]; // 文件名（如 SEF3）
                   this.runningModule = parts[1]; // 模块名（如 Window_F）
                 } else {
-                  this.runningFile = runningModel;
+                this.runningFile = runningModel;
                   this.runningModule = '';
                 }
               } else {
@@ -5260,7 +5252,7 @@ current_output_gain:0.5`
         },
         async confirmLocalUpgrade() {
           let filePath = '';
-
+          
           // 根据选择的标签页获取文件路径
           if (this.localUpgradeTab === 'file') {
             // 从文件选择器获取
@@ -5268,22 +5260,22 @@ current_output_gain:0.5`
               this.$message.warning('请先选择 .hex 文件');
               return;
             }
-
+            
             // 浏览器无法获取本地文件完整路径，需要上传到服务器获取路径
             try {
               this.localUpgradeLoading = true;
               const formData = new FormData();
               formData.append('file', this.selectedHexFile);
-
+              
               const uploadResp = await fetch('/api/upload/hex', {
                 method: 'POST',
                 body: formData
               });
-
+              
               if (!uploadResp.ok) {
                 throw new Error('文件上传失败');
               }
-
+              
               const uploadResult = await uploadResp.json();
               if (uploadResult && uploadResult.path) {
                 filePath = uploadResult.path;
@@ -5309,19 +5301,19 @@ current_output_gain:0.5`
               return;
             }
           }
-
+          
           // 防止重复点击
           if (this.localUpgradeLoading) {
             return;
           }
-
+          
           // 立即关闭弹窗并设置加载状态
           this.dialogLocalUpgradeVisible = false;
           this.localUpgradeLoading = true;
-
+          
           // 先不设置升级状态，等确认成功后再设置
           const k = this.otaKey(this.localUpgradeTarget.ip, this.localUpgradeTarget.loader_num);
-
+          
           try {
             // 调用 loader_ota 接口
             const resp = await wsClient.loaderOta(
@@ -5329,17 +5321,17 @@ current_output_gain:0.5`
               this.localUpgradeTarget.loader_num,
               filePath
             );
-
+            
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
             if (payload && payload.ret === false) {
               throw new Error(payload.desc || '近端升级失败');
             }
-
+            
             // 只有成功后才设置升级状态
             this.$message.success('近端升级已启动');
             this.$set(this.otaStatus, k, { status: 'running', desc: '近端升级中…' });
             this.otaUpdatingKey = k;
-
+            
             // 清空选择
             this.selectedHexFile = null;
             this.selectedHexName = '';
@@ -5709,18 +5701,18 @@ current_output_gain:0.5`
           try {
             // 使用当前运行的文件路径，如果没有则使用 selectedModelPath
             const modelPath = this.runningFile || (Array.isArray(this.selectedModelPath) && this.selectedModelPath.length >= 2 ? this.selectedModelPath : ['project1', 'model']);
-
+            
             // 先尝试 data_replay（回灌）
             let resp = await wsClient.stopLoader(this.device_id, this.loader_num, modelPath, 'data_replay');
             let payload = resp && resp.data ? resp.data : resp;
-
+            
             // 如果 data_replay 失败，再尝试 component_emulation（模型）
             if (payload && payload.ret === false) {
               console.log('[WS] data_replay 停止失败，尝试 component_emulation');
               resp = await wsClient.stopLoader(this.device_id, this.loader_num, modelPath, 'component_emulation');
               payload = resp && resp.data ? resp.data : resp;
             }
-
+            
             // 判断最终结果
             if (payload && payload.ret === false) {
               this.$message.error(payload.desc || '停止失败');
@@ -5850,7 +5842,7 @@ current_output_gain:0.5`
                 // 从服务器获取本地文件列表
                 const resp = await wsClient.getLocalFileList();
                 const payload = resp && resp.data ? resp.data : resp;
-
+                
                 // 检查响应格式
                 if (payload && payload.ret === true && Array.isArray(payload.desc) && payload.desc.length > 0) {
                   // 只显示文件名列表，不加载内容（默认不选中文件）
@@ -5877,7 +5869,7 @@ current_output_gain:0.5`
                   }
 
                   if (!foundRunning) {
-                    this.activeModelIndex = -1; // 默认不选中
+                  this.activeModelIndex = -1; // 默认不选中
                   }
                   console.log('[参数编辑] 成功加载文件列表，共', this.models.length, '个文件');
                   return;
@@ -5896,7 +5888,7 @@ current_output_gain:0.5`
                 return;
               }
             }
-
+            
             // 如果 WebSocket 未连接，使用本地示例
             await this.loadSampleFiles();
             this.activeModelIndex = 0;
@@ -5908,7 +5900,7 @@ current_output_gain:0.5`
             this.activeModelIndex = -1;
           }
         },
-
+        
         /**
          * 加载本地示例文件（模拟模式）
          */
@@ -5926,7 +5918,7 @@ current_output_gain:0.5`
           this.activeModelIndex = index;
           const model = this.models[index];
           if (!model) return;
-
+          
           // 如果文件内容未加载，从服务器读取
           if (!model.success && model.path && this.wsConnected) {
             try {
@@ -5934,7 +5926,7 @@ current_output_gain:0.5`
               const resp = await wsClient.readLocalFile(model.path);
               // 根据 WSClient 的实现，resp 已经是解析后的 data 对象（或者是整个消息）
               const payload = (resp && resp.data !== undefined) ? resp.data : resp;
-
+              
               if (payload && (payload.success === true || payload.ret === true)) {
                 // 如果是 {ret:true, data: {...}} 结构，则解包 data
                 const result = (payload.ret === true && payload.data) ? payload.data : payload;
@@ -5965,7 +5957,7 @@ current_output_gain:0.5`
               this.$message.error(`读取文件失败: ${err.message || err}`);
             }
           }
-
+          
           this.showRaw = false;
           this.hasModified = false;
           // 自动展开运行中的模块，否则默认展开第一个
@@ -6001,7 +5993,7 @@ current_output_gain:0.5`
         isModuleRunning(filename, moduleName) {
           return this.isFileRunning(filename) && this.runningModule === moduleName;
         },
-
+        
         // 参数字典相关方法
         // 模型字典相关方法（来自 data/model_dictionary.json）
         getParamDef(paramName) { return (this.modelDictionary && this.modelDictionary.parameters || {})[paramName]; },
@@ -6034,7 +6026,7 @@ current_output_gain:0.5`
         isNumericParam(param) {
           return typeof param.value === 'number' || !isNaN(parseFloat(param.value));
         },
-
+        
         // 单值参数更新（修复删除后无法调节的问题）
         updateSingleParam(param, value) {
           // 当值为 null 或 undefined 时，使用默认值或0
@@ -6046,7 +6038,7 @@ current_output_gain:0.5`
           }
           this.hasModified = true;
         },
-
+        
         // 数组操作方法
         addArrayItem(param) {
           const lastValue = param.value.length > 0 ? param.value[param.value.length - 1] : 0;
@@ -6069,7 +6061,7 @@ current_output_gain:0.5`
           param.value[index] = value;
           this.hasModified = true;
         },
-
+        
         // 矩阵操作方法
         addMatrixRow(param) {
           if (param.value.length > 0) {
@@ -6096,19 +6088,19 @@ current_output_gain:0.5`
           }
           this.hasModified = true;
         },
-
+        
         // ============================================================
         // API 接口调用方法
         // 【说明】以下方法需要对接后端 Python 接口
         // ============================================================
-
+        
         /**
          * 保存文件到本地
          * 【接口】WebSocket: file.save
          */
         async handleSave() {
           if (!this.currentModel || !this.currentModel.path) return;
-
+          
           try {
             const binData = {
               filename: this.currentModel.filename,
@@ -6131,13 +6123,13 @@ current_output_gain:0.5`
             this.$message.error(`保存失败: ${err.message}`);
           }
         },
-
+        
         /**
          * 另存为文件到用户本地电脑
          */
         async handleSaveAs() {
           if (!this.currentModel) return;
-
+          
           try {
             const content = this.generateBinContent();
             const filename = this.currentModel.filename || 'model.bin';
@@ -6191,7 +6183,7 @@ current_output_gain:0.5`
           const name = this.newModelFilename.trim();
           if (!name) return;
           const filename = name.endsWith('.bin') ? name : name + '.bin';
-
+          
           try {
             // 构造新模型的对象结构
             const binData = {
@@ -6199,16 +6191,16 @@ current_output_gain:0.5`
               modules: []
             };
             const content = `# New Model: ${filename}\n# Created at: ${new Date().toLocaleString()}\n`;
-
+            
             if (this.wsConnected) {
               // 直接保存到 resource/loader/ 文件夹下，使用文件名作为路径
               const path = filename;
-
+              
               // 调用保存接口保存到服务器本地，传入对象
               await wsClient.saveLocalFile(path, binData);
               this.$message.success(`模型文件 ${filename} 创建成功`);
               this.dialogNewModelVisible = false;
-
+              
               // 刷新列表
               await this.parseAllFiles();
               // 选中新创建的文件
@@ -6249,16 +6241,16 @@ current_output_gain:0.5`
         },
         confirmAddModule() {
           if (!this.selectedModuleType || !this.currentModel) return;
-
+          
           const modDef = this.modelDictionary.modules[this.selectedModuleType];
           if (!modDef) return;
-
+          
           // 根据定义构建新模块对象
           const newModule = {
             name: this.selectedModuleType,
             params: []
           };
-
+          
           // 如果定义里有参数列表，则初始化参数
           if (modDef.parameters && Array.isArray(modDef.parameters)) {
             modDef.parameters.forEach(pName => {
@@ -6272,7 +6264,7 @@ current_output_gain:0.5`
                 } else {
                   initialValue = pDef.default !== undefined ? pDef.default : (pDef.min !== undefined ? pDef.min : 0);
                 }
-
+                
                 newModule.params.push({
                   name: pName,
                   type: pDef.type || 'single',
@@ -6281,53 +6273,53 @@ current_output_gain:0.5`
               }
             });
           }
-
+          
           // 添加到当前模型
           if (!this.currentModel.modules) this.$set(this.currentModel, 'modules', []);
           this.currentModel.modules.push(newModule);
           this.hasModified = true;
           this.dialogAddModuleVisible = false;
-
+          
           // 展开新模块
           const newIdx = this.currentModel.modules.length - 1;
           this.$set(this.expandedModules, newIdx, true);
-
+          
           this.$message.success(`已添加模块: ${this.selectedModuleType}`);
         },
         handleOpenAddParamDialog(moduleIndex) {
           if (!this.currentModel || !this.currentModel.modules || moduleIndex < 0) return;
           const module = this.currentModel.modules[moduleIndex];
           if (!module) return;
-
+          
           // 检查模块是否正在运行
           if (this.isModuleRunning(this.currentModel.filename, module.name)) {
             this.$message.warning('该模块正在运行中，无法添加参数');
             return;
           }
-
+          
           this.selectedModuleIndexForParam = moduleIndex;
           this.selectedParamName = '';
           this.dialogAddParamVisible = true;
         },
         confirmAddParam() {
           if (!this.selectedParamName || this.selectedModuleIndexForParam < 0 || !this.currentModel) return;
-
+          
           const module = this.currentModel.modules[this.selectedModuleIndexForParam];
           if (!module) return;
-
+          
           // 检查参数是否已存在
           if (module.params.some(p => p.name === this.selectedParamName)) {
             this.$message.warning('该参数已存在');
             return;
           }
-
+          
           // 获取参数定义
           const pDef = this.modelDictionary.parameters[this.selectedParamName];
           if (!pDef) {
             this.$message.error('参数定义不存在');
             return;
           }
-
+          
           // 检查模块是否允许此参数
           const modDef = this.modelDictionary.modules[module.name];
           if (modDef && modDef.allowed_param_ids && pDef.id) {
@@ -6336,7 +6328,7 @@ current_output_gain:0.5`
               return;
             }
           }
-
+          
           // 构建新参数对象
           let initialValue;
           let paramType = 'single'; // 默认统一使用 single 类型适配 UI
@@ -6354,34 +6346,34 @@ current_output_gain:0.5`
             paramType = 'single'; // number 等其他类型映射为 single
             initialValue = pDef.default !== undefined ? pDef.default : (pDef.min !== undefined ? pDef.min : 0);
           }
-
+          
           const newParam = {
             name: this.selectedParamName,
             type: paramType,
             value: initialValue
           };
-
+          
           // 添加到模块
           if (!module.params) this.$set(module, 'params', []);
           module.params.push(newParam);
           this.hasModified = true;
           this.dialogAddParamVisible = false;
-
+          
           this.$message.success(`已添加参数: ${this.selectedParamName}`);
         },
         handleRemoveParam(moduleIndex, paramIndex) {
           if (!this.currentModel || !this.currentModel.modules || moduleIndex < 0) return;
           const module = this.currentModel.modules[moduleIndex];
           if (!module || !module.params || paramIndex < 0 || paramIndex >= module.params.length) return;
-
+          
           // 检查模块是否正在运行
           if (this.isModuleRunning(this.currentModel.filename, module.name)) {
             this.$message.warning('该模块正在运行中，无法删除参数');
             return;
           }
-
+          
           const param = module.params[paramIndex];
-
+          
           this.$confirm(`确定要从模块 ${module.name} 中移除参数 ${param.name} 吗？`, '移除参数', {
             confirmButtonText: '移除',
             cancelButtonText: '取消',
@@ -6426,7 +6418,7 @@ current_output_gain:0.5`
         handleRemoveModule(index) {
           if (!this.currentModel || !this.currentModel.modules) return;
           const mod = this.currentModel.modules[index];
-
+          
           // 安全限制：如果该模块正在运行，则不能移除
           if (this.isModuleRunning(this.currentModel.filename, mod.name)) {
             this.$message.error('该模块正在运行中，无法移除');
@@ -6443,7 +6435,7 @@ current_output_gain:0.5`
             this.$message.success(`已移除模块: ${mod.name}`);
           }).catch(() => { });
         },
-
+        
         /**
          * 应用参数到设备
          * 【接口】WebSocket: apply_params_to_device
@@ -6481,14 +6473,14 @@ current_output_gain:0.5`
             this.$message.error(`应用失败: ${err.message}`);
           }
         },
-
+        
         /**
          * 上传到云端
          * 【接口】WebSocket: upload_to_cloud
          */
         async handleUploadCloud() {
           if (!this.currentModel || !this.currentModel.path) return;
-
+          
           try {
             if (this.wsConnected) {
               await wsClient.uploadToCloud(this.currentModel.path);
@@ -6501,7 +6493,7 @@ current_output_gain:0.5`
             this.$message.error(`上传失败: ${err.message}`);
           }
         },
-
+        
         /**
          * 从云端获取文件列表
          * 【接口】WebSocket: cloud.list
@@ -6521,7 +6513,7 @@ current_output_gain:0.5`
             this.$message.error(`获取失败: ${err.message}`);
           }
         },
-
+        
         /**
          * 导入文件到设备（从服务器本地导入）
          * 【接口】WebSocket: load_model
@@ -6541,7 +6533,7 @@ current_output_gain:0.5`
             console.error('刷新设备信息失败:', err);
           }
         },
-
+        
         /**
          * 读取单个寄存器
          * 【接口】WebSocket: register.read
@@ -6552,9 +6544,9 @@ current_output_gain:0.5`
             this.$message.warning('设备未连接');
             return;
           }
-
+          
           reg.loading = true;
-
+          
           try {
             if (this.wsConnected) {
               const resp = await wsClient.waitRegValue(this.device_id, this.loader_num, reg.name);
@@ -6574,11 +6566,11 @@ current_output_gain:0.5`
                   }
                 }
               }
-
+              
               // wait_reg_value 将值返回在 desc 字段，ret 表示成功
               if (payload && (payload.ret === true || payload.ret === 'true')) {
                 const value = payload.desc !== undefined ? String(payload.desc) : '';
-
+                
                 // 如果值为空或null，且重试次数小于3次，则重试
                 if ((value === '' || value === 'null' || value === 'Null' || value === 'NULL') && retryCount < 3) {
                   console.log(`[Register] ${reg.name} 读取值为空，重试 ${retryCount + 1}/3`);
@@ -6586,7 +6578,7 @@ current_output_gain:0.5`
                   await new Promise(resolve => setTimeout(resolve, 300)); // 等待300ms后重试
                   return this.readRegister(reg, retryCount + 1);
                 }
-
+                
                 reg.value = value;
                 reg.readError = false;
                 if (retryCount === 0) {
@@ -6624,7 +6616,7 @@ current_output_gain:0.5`
             reg.loading = false;
           }
         },
-
+        
         /**
          * 写入单个寄存器
          * 【接口】WebSocket: register.write
@@ -6635,20 +6627,20 @@ current_output_gain:0.5`
             this.$message.warning('设备未连接');
             return;
           }
-
+          
           if (reg.inputValue === null || reg.inputValue === '') {
             this.$message.warning('请输入要写入的值');
             return;
           }
-
+          
           const writeValue = reg.inputValue;
-
+          
           try {
             if (this.wsConnected) {
               const resp = await wsClient.setRegValue(this.device_id, this.loader_num, reg.name, writeValue);
               const payload = (resp && resp.data !== undefined) ? resp.data : resp;
               if (payload && payload.ret === false) throw new Error(payload.desc || '写入失败');
-
+              
               // 写入成功后，通过 wait_reg_value 获取实际值，而不是直接套用输入值
               try {
                 const readResp = await wsClient.waitRegValue(this.device_id, this.loader_num, reg.name);
@@ -6666,7 +6658,7 @@ current_output_gain:0.5`
                     }
                   }
                 }
-
+                
                 if (readPayload && (readPayload.ret === true || readPayload.ret === 'true')) {
                   const actualValue = readPayload.desc !== undefined ? String(readPayload.desc) : '';
                   if (reg.access === 'readwrite' || reg.access === 'read') {
@@ -6687,19 +6679,19 @@ current_output_gain:0.5`
                 reg.value = writeValue;
               }
             }
-
+            
             reg.inputValue = null;
             reg.modified = true;
-
+            
             this.$message.success(`寄存器 ${reg.name} 写入成功`);
-
+            
             // 3秒后取消高亮
             setTimeout(() => { reg.modified = false; }, 3000);
           } catch (err) {
             this.$message.error(`写入失败: ${err.message}`);
           }
         },
-
+        
         /**
          * 刷新所有可读寄存器
          * 【接口】WebSocket: register.readAll
@@ -6709,14 +6701,14 @@ current_output_gain:0.5`
             this.$message.warning('设备未连接');
             return;
           }
-
+          
           this.registerLoading = true;
           const readableRegs = this.registers.filter(r => r.access !== 'write');
-
+          
           for (const reg of readableRegs) {
             reg.loading = true;
           }
-
+          
           try {
             if (this.wsConnected) {
               const resp = await wsClient.getSignals(this.device_id, this.loader_num);
@@ -6741,14 +6733,14 @@ current_output_gain:0.5`
                   list = resp.list;
                 }
               }
-
+              
               const byName = new Map();
               for (const item of list) {
                 if (item && item.name !== undefined && item.name !== null) {
                   byName.set(String(item.name), item.value !== undefined ? String(item.value) : '');
                 }
               }
-
+              
               const returned = new Set();
               for (const reg of readableRegs) {
                 if (byName.has(reg.name)) {
@@ -6766,7 +6758,7 @@ current_output_gain:0.5`
                   reg.loading = false;
                 }
               }
-
+              
               if (list.length > 0) {
                 this.$message.success(`已刷新 ${returned.size}/${readableRegs.length} 个寄存器`);
               } else {
@@ -6895,7 +6887,7 @@ current_output_gain:0.5`
             const allDevices = this.importDeviceType === 'all';
 
             this.$message.info(`正在准备导入: ${modelzip}...`);
-
+            
             let resp;
             if (allDevices) {
               // 导入所有设备：不需要 device_id 和 loader_num
@@ -6904,7 +6896,7 @@ current_output_gain:0.5`
               // 导入当前设备
               resp = await wsClient.loadModel(this.device_id, this.loader_num, modelzip, project, false);
             }
-
+            
             const payload = (resp && resp.data !== undefined) ? resp.data : resp;
             if (payload && payload.ret === false) throw new Error(payload.desc || 'load_model failed');
             this.$message.success((payload && payload.desc) || `导入指令已发送（${allDevices ? '所有设备' : '当前设备'}）`);
@@ -6945,7 +6937,7 @@ current_output_gain:0.5`
             if (err && err.message && err !== 'cancel') this.$message.error('云端导入失败: ' + err.message);
           }
         },
-
+        
         /**
          * 生成bin文件内容
          */
@@ -6972,17 +6964,17 @@ current_output_gain:0.5`
           content += 'END\n';
           return content;
         },
-
+        
         // ============================================================
         // WebSocket 相关方法
         // ============================================================
-
+        
         /**
          * 初始化 WebSocket 连接
          */
         initWebSocket() {
           const self = this;
-
+          
           // 监听连接事件
           wsClient.on('connected', () => {
             self.wsConnected = true;
@@ -6995,7 +6987,7 @@ current_output_gain:0.5`
             self.loadRegisterSheets(); // 先加载 Sheet 配置
             self.loadRegisterDefinitions()
               .then(() => self.refreshDeviceInfoFromSignals());
-
+            
             // 启动 get_connect_status 监控定时器
             self.startConnectStatusMonitor();
           });
@@ -7058,7 +7050,7 @@ current_output_gain:0.5`
             self.lastConnectStatusTime = Date.now();
             // 收到消息后重置请求标志
             self.hasRequestedConnectStatus = false;
-
+            
             // 自动选中第一个设备（仅在尚未选中时）
             try {
               if (!self.selectedDeviceKey) {
@@ -7066,7 +7058,7 @@ current_output_gain:0.5`
                 const firstLab = self.connectStatus && typeof self.connectStatus === 'object' ? Object.values(self.connectStatus)[0] : null;
                 const cabinets = Array.isArray(firstLab) ? firstLab : [];
                 let found = false;
-
+                
                 for (const cab of cabinets) {
                   const devices = Array.isArray(cab.value) ? cab.value : [];
                   if (devices.length > 0) {
@@ -7145,19 +7137,19 @@ current_output_gain:0.5`
             console.log('[WS] 初始连接失败，使用模拟模式');
           });
         },
-
+        
         /**
          * 启动 get_connect_status 监控定时器
          * 每10秒检查一次，如果超过10秒没收到消息，主动请求一次
          */
         startConnectStatusMonitor() {
           this.stopConnectStatusMonitor(); // 先清除旧的定时器
-
+          
           this.connectStatusCheckTimer = setInterval(() => {
             this.checkConnectStatus();
           }, 10000); // 每10秒检查一次
         },
-
+        
         /**
          * 停止 get_connect_status 监控定时器
          */
@@ -7167,17 +7159,17 @@ current_output_gain:0.5`
             this.connectStatusCheckTimer = null;
           }
         },
-
+        
         /**
          * 检查 get_connect_status 是否超时
          * 如果超过10秒没收到消息，主动请求一次（只请求一次，避免不停请求）
          */
         async checkConnectStatus() {
           if (!this.wsConnected) return;
-
+          
           const now = Date.now();
           const timeSinceLastMessage = now - this.lastConnectStatusTime;
-
+          
           // 如果超过10秒没收到消息，且还没请求过，主动请求一次
           if (timeSinceLastMessage > 10000 && !this.hasRequestedConnectStatus) {
             console.log('[WS] get_connect_status 超时，主动请求一次');
@@ -7198,7 +7190,7 @@ current_output_gain:0.5`
             }
           }
         },
-
+        
         /**
          * 将所有设备状态置灰（表示未连接）
          */
@@ -7228,7 +7220,7 @@ current_output_gain:0.5`
             }
             this.connectStatus = updatedStatus;
           }
-
+          
           // 更新当前选中设备的状态
           const entry = this.currentDeviceEntry;
           if (entry) {
@@ -7333,7 +7325,7 @@ current_output_gain:0.5`
         this.loadModelDictionary().finally(() => this.parseAllFiles());
         const runningIndex = this.models.findIndex(m => m.filename === this.runningFile);
         if (runningIndex !== -1) this.selectModel(runningIndex);
-
+        
         // 初始化 WebSocket 连接
         this.initWebSocket();
 
@@ -7351,7 +7343,7 @@ current_output_gain:0.5`
         this.$nextTick(() => {
           this.initFloatingPanelDrag();
         });
-
+        
         // 页面刷新时额外请求一次 get_connect_status
         window.addEventListener('beforeunload', () => {
           if (this.wsConnected) {
