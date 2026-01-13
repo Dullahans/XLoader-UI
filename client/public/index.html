@@ -2593,46 +2593,28 @@
             </span>
           </el-dialog>
 
-          <!-- 近端升级：选择 hex 文件 -->
-          <el-dialog title="近端升级（选择 .hex 文件）" :visible.sync="dialogLocalUpgradeVisible" width="560px">
+          <!-- 近端升级：输入 hex 文件路径 -->
+          <el-dialog title="近端升级（输入 .hex 文件路径）" :visible.sync="dialogLocalUpgradeVisible" width="560px">
             <div style="margin-bottom: 15px; font-size: 12px; color: var(--text-muted);">
               目标设备：{{ localUpgradeTarget.ip }} #{{ localUpgradeTarget.loader_num }}（{{ localUpgradeTarget.loader_name ||
               '' }}）
             </div>
             
-            <el-tabs v-model="localUpgradeTab" type="border-card">
-              <el-tab-pane label="选择文件" name="file">
-                <div style="margin: 15px 0;">
-                  <el-upload action="#" :auto-upload="false" :limit="1" accept=".hex" :on-change="onHexSelected"
-                    :on-remove="onHexRemoved" :file-list="hexFileList">
-                    <el-button size="small" type="primary" icon="el-icon-folder-opened">从资源管理器选择文件</el-button>
-                    <div slot="tip" class="el-upload__tip"
-                      style="margin-top: 8px; color: var(--text-muted); font-size: 12px;">只允许选择 .hex 后缀文件</div>
-                  </el-upload>
-                  <div v-if="selectedHexName" style="margin-top: 10px; font-size: 12px; color: var(--text-secondary);">
-                    已选择：{{ selectedHexName }}
-                  </div>
-                </div>
-              </el-tab-pane>
-              
-              <el-tab-pane label="输入路径" name="path">
-                <div style="margin: 15px 0;">
-                  <el-input v-model="localUpgradePath" placeholder="请输入 .hex 文件的绝对路径，例如：D:\workspace\aaa.hex"
-                    size="small" style="width: 100%;">
-                    <template slot="prepend">文件路径</template>
-                  </el-input>
-                  <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
-                    请输入服务器本地文件的完整路径
-                  </div>
-                </div>
-              </el-tab-pane>
-            </el-tabs>
+            <div style="margin: 20px 0;">
+              <el-input v-model="localUpgradePath" placeholder="请输入 .hex 文件的绝对路径，例如：D:\workspace\aaa.hex"
+                size="small" style="width: 100%;">
+                <template slot="prepend">文件路径</template>
+              </el-input>
+              <div style="margin-top: 10px; font-size: 12px; color: var(--text-muted);">
+                <i class="el-icon-info"></i> 请输入上位机（服务器）本地文件的完整绝对路径。
+              </div>
+            </div>
             
             <span slot="footer" class="dialog-footer">
               <el-button size="mini" @click="dialogLocalUpgradeVisible = false"
                 :disabled="localUpgradeLoading">取消</el-button>
               <el-button size="mini" type="primary"
-                :disabled="(!selectedHexName && !localUpgradePath) || localUpgradeLoading"
+                :disabled="!localUpgradePath || localUpgradeLoading"
                 :loading="localUpgradeLoading" @click="confirmLocalUpgrade">开始近端升级</el-button>
             </span>
           </el-dialog>
@@ -5209,94 +5191,25 @@ current_output_gain:0.5`
           }
         },
 
-        // 近端升级：选择 hex 文件
-        onHexSelected(file, fileList) {
-          const name = (file && file.name) ? String(file.name) : '';
-          if (!name.toLowerCase().endsWith('.hex')) {
-            this.$message.error('只允许选择 .hex 文件');
-            this.hexFileList = [];
-            this.selectedHexFile = null;
-            this.selectedHexName = '';
-            this.selectedHexPath = '';
-            return;
-          }
-          // ElementUI 的 file 对象里 raw 才是原始 File
-          this.selectedHexFile = file.raw || null;
-          this.selectedHexName = name;
-          this.hexFileList = fileList.slice(-1);
-          // 浏览器无法获取本地文件完整路径，需要在确认时提示用户输入
-          this.selectedHexPath = '';
-        },
-        onHexRemoved() {
-          this.selectedHexFile = null;
-          this.selectedHexName = '';
-          this.selectedHexPath = '';
-          this.hexFileList = [];
-        },
         openLocalUpgrade(row) {
           this.localUpgradeTarget = {
             ip: row.ip,
             loader_num: row.loader_num,
             loader_name: row.loader_name || ''
           };
-          this.selectedHexFile = null;
-          this.selectedHexName = '';
-          this.selectedHexPath = '';
           this.localUpgradePath = '';
-          this.hexFileList = [];
-          this.localUpgradeTab = 'file';
           this.dialogLocalUpgradeVisible = true;
         },
         async confirmLocalUpgrade() {
-          let filePath = '';
-          
-          // 根据选择的标签页获取文件路径
-          if (this.localUpgradeTab === 'file') {
-            // 从文件选择器获取
-            if (!this.selectedHexFile || !this.selectedHexName) {
-              this.$message.warning('请先选择 .hex 文件');
-              return;
-            }
-            
-            // 浏览器无法获取本地文件完整路径，需要上传到服务器获取路径
-            try {
-              this.localUpgradeLoading = true;
-              const formData = new FormData();
-              formData.append('file', this.selectedHexFile);
-              
-              const uploadResp = await fetch('/api/upload/hex', {
-                method: 'POST',
-                body: formData
-              });
-              
-              if (!uploadResp.ok) {
-                throw new Error('文件上传失败');
-              }
-              
-              const uploadResult = await uploadResp.json();
-              if (uploadResult && uploadResult.path) {
-                filePath = uploadResult.path;
-              } else {
-                throw new Error('服务器未返回文件路径');
-              }
-            } catch (err) {
-              this.localUpgradeLoading = false;
-              this.$message.error(`文件上传失败: ${err.message || err}，请切换到"输入路径"标签页手动输入文件绝对路径`);
-              this.localUpgradeTab = 'path';
-              this.localUpgradePath = this.selectedHexName;
-              return;
-            }
-          } else {
-            // 从输入框获取
-            filePath = (this.localUpgradePath || '').trim();
-            if (!filePath) {
-              this.$message.warning('请输入 .hex 文件的绝对路径');
-              return;
-            }
-            if (!filePath.toLowerCase().endsWith('.hex')) {
-              this.$message.warning('文件路径必须以 .hex 结尾');
-              return;
-            }
+          // 直接从输入框获取路径
+          const filePath = (this.localUpgradePath || '').trim();
+          if (!filePath) {
+            this.$message.warning('请输入 .hex 文件的绝对路径');
+            return;
+          }
+          if (!filePath.toLowerCase().endsWith('.hex')) {
+            this.$message.warning('文件路径必须以 .hex 结尾');
+            return;
           }
           
           // 防止重复点击
@@ -5308,7 +5221,6 @@ current_output_gain:0.5`
           this.dialogLocalUpgradeVisible = false;
           this.localUpgradeLoading = true;
           
-          // 先不设置升级状态，等确认成功后再设置
           const k = this.otaKey(this.localUpgradeTarget.ip, this.localUpgradeTarget.loader_num);
           
           try {
@@ -5329,19 +5241,10 @@ current_output_gain:0.5`
             this.$set(this.otaStatus, k, { status: 'running', desc: '近端升级中…' });
             this.otaUpdatingKey = k;
             
-            // 清空选择
-            this.selectedHexFile = null;
-            this.selectedHexName = '';
-            this.selectedHexPath = '';
+            // 清空输入
             this.localUpgradePath = '';
-            this.hexFileList = [];
           } catch (err) {
-            // 失败时不设置升级状态，保持原有状态
             this.$message.error(`近端升级失败: ${err.message || err}`);
-            // 清除可能存在的错误状态
-            if (this.otaStatus[k] && this.otaStatus[k].status === 'error') {
-              this.$delete(this.otaStatus, k);
-            }
             // 如果失败，重新打开弹窗让用户重试
             this.dialogLocalUpgradeVisible = true;
           } finally {
