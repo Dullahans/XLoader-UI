@@ -2158,11 +2158,11 @@
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
       display: flex;
       flex-direction: column;
-      padding: 4px 3px; /* 大幅缩小上下内边距 */
-      gap: 2px; /* 进一步缩小图标间距 */
+      padding: 6px 3px; /* 适当增加上下内边距 */
+      gap: 4px; /* 适当增加图标间距 */
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       user-select: none;
-      width: 22px; /* 缩小至约一半 */
+      width: 28px; /* 适当放大缩小状态的宽度 */
     }
 
     .floating-panel:hover {
@@ -2178,8 +2178,8 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      width: 16px; /* 初始小尺寸 */
-      height: 16px;
+      width: 22px; /* 初始尺寸适当放大 */
+      height: 22px;
       border-radius: 4px;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       color: var(--text-secondary);
@@ -2197,7 +2197,7 @@
     }
 
     .floating-item i {
-      font-size: 12px; /* 初始小图标 */
+      font-size: 16px; /* 初始图标适当放大 */
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -2870,14 +2870,14 @@
             <div class="page-header">
               <h2 class="page-title">参数编辑</h2>
               <div class="btn-group">
-                <el-tooltip content="上传当前文件到云端服务器" placement="top">
-                  <button class="action-btn" :disabled="!wsConnected || !currentModel || !currentModel.path"
+                <el-tooltip content="云端上传（暂未开放）" placement="top">
+                  <button class="action-btn" :disabled="true"
                     @click="handleUploadCloud">
                     <i class="el-icon-upload2"></i>云端上传
                   </button>
                 </el-tooltip>
-                <el-tooltip content="从云端获取模型文件列表" placement="top">
-                  <button class="action-btn" :disabled="!wsConnected" @click="handleDownloadCloudModel">
+                <el-tooltip content="云端下载（暂未开放）" placement="top">
+                  <button class="action-btn" :disabled="true" @click="handleDownloadCloudModel">
                     <i class="el-icon-download"></i>云端下载
                   </button>
                 </el-tooltip>
