@@ -3542,7 +3542,7 @@
         this.messageId = 0; // 保留，但默认用 cmd_id
         this.pendingRequests = new Map();
         this.listeners = new Map();
-        this.requestTimeout = 10000;
+        this.requestTimeout = 10000; // 默认超时时间 10s
       }
 
       /**
@@ -3716,9 +3716,10 @@
        * 发送请求并等待响应
        * @param {string} action - 操作类型
        * @param {object} params - 参数
+       * @param {number} timeout - 可选，自定义超时时间（毫秒）
        * @returns {Promise<object>} - 响应数据
        */
-      request(action, params = {}) {
+      request(action, params = {}, timeout = null) {
         return new Promise((resolve, reject) => {
           if (!this.connected) {
             reject(new Error('WebSocket 未连接'));
@@ -3738,14 +3739,15 @@
           const message = { topic: this.topic, cmd_id, name, data: dataField };
 
           // 设置超时
+          const currentTimeout = timeout || this.requestTimeout;
           const timer = setTimeout(() => {
             this.pendingRequests.delete(cmdIdStr);
             reject(new Error('请求超时'));
-          }, this.requestTimeout);
+          }, currentTimeout);
 
           this.pendingRequests.set(cmdIdStr, { resolve, reject, timer });
 
-          console.log('[WS] 发送请求:', name, params, 'cmd_id=', cmd_id);
+          console.log('[WS] 发送请求:', name, params, 'cmd_id=', cmd_id, 'timeout=', currentTimeout);
           this.ws.send(JSON.stringify(message));
         });
       }
@@ -3827,13 +3829,13 @@
       // --- 启动模型播放 ---
       startLoader(device_id, loader_num, model, sim_type = 'component_emulation') {
         // model: ["project1","Window_Left"]
-        return this.request('start_loader', { device_id, loader_num, model, sim_type });
+        return this.request('start_loader', { device_id, loader_num, model, sim_type }, 10000);
       }
 
       // --- 停止模型播放 ---
       stopLoader(device_id, loader_num, model, sim_type = 'component_emulation') {
         // model: ["project1","Window"]
-        return this.request('stop_loader', { device_id, loader_num, model, sim_type });
+        return this.request('stop_loader', { device_id, loader_num, model, sim_type }, 10000);
       }
 
       // --- 6 批量获取寄存器值（get_signals）---
@@ -3896,7 +3898,7 @@
 
       // --- 15 单设备云端 OTA（update_one_loader）---
       updateOneLoader(device_id, loader_num) {
-        return this.request('update_one_loader', { device_id, loader_num });
+        return this.request('update_one_loader', { device_id, loader_num }, 300000);
       }
 
       // --- 17 设置单个寄存器值（set_reg_value）---
@@ -3966,7 +3968,7 @@
 
       // --- 29 OTA近端升级（loader_ota） ---
       loaderOta(device_id, loader_num, path) {
-        return this.request('loader_ota', { device_id, loader_num, path });
+        return this.request('loader_ota', { device_id, loader_num, path }, 300000);
       }
 
       // --- 30 文件拉取（pull_loader_log） ---
