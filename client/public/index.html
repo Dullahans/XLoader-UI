@@ -2465,11 +2465,11 @@
         <div class="content-area">
           <div class="page-tabs">
             <button class="page-tab" :class="{ active: activePage === 'info' }"
-              @click="activePage = 'info'">设备信息</button>
+              @click="switchPage('info')">设备信息</button>
             <button class="page-tab" :class="{ active: activePage === 'model' }"
-              @click="activePage = 'model'">参数编辑</button>
+              @click="switchPage('model')">参数编辑</button>
             <button class="page-tab" :class="{ active: activePage === 'register' }"
-              @click="activePage = 'register'">寄存器管理</button>
+              @click="switchPage('register')">寄存器管理</button>
           </div>
 
           <!-- 工具弹窗：模型管理（暂不处理） -->
@@ -2949,7 +2949,7 @@
                       'has-error': model.errors && model.errors.length > 0,
                       'is-running': isFileRunning(model.filename),
                       'drag-over': dragOverModelIndex === index
-                    }" @click="selectModel(index)" draggable="true" @dragstart="handleModelDragStart($event, index)"
+                    }" @click="handleSelectModel(index)" draggable="true" @dragstart="handleModelDragStart($event, index)"
                       @dragover.prevent="handleModelDragOver($event, index)" @dragleave="handleModelDragLeave($event)"
                       @drop="handleModelDrop($event, index)">
                       <i :class="model.success ? 'el-icon-document' : 'el-icon-document-delete'"></i>
@@ -5841,6 +5841,54 @@ current_output_gain:0.5`
           this.models = models;
           console.log('[模拟] 使用本地示例文件');
         },
+        async switchPage(page) {
+          if (this.activePage === page) return;
+          // 只有从“参数编辑”切换走时才检查
+          if (this.activePage === 'model') {
+            if (await this.confirmUnsavedChanges()) {
+              this.activePage = page;
+            }
+          } else {
+            this.activePage = page;
+          }
+        },
+        async confirmUnsavedChanges() {
+          if (!this.hasModified) return true;
+          try {
+            // 使用 distinguishCancelAndClose 来区分“放弃修改”和“取消切换”
+            const action = await this.$confirm('当前文件有未保存的修改，是否保存？', '提示', {
+              confirmButtonText: '保存并切换',
+              cancelButtonText: '放弃修改并切换',
+              distinguishCancelAndClose: true,
+              type: 'warning'
+            }).then(() => 'save').catch(action => action === 'cancel' ? 'discard' : 'cancel');
+
+            if (action === 'save') {
+              await this.handleSave();
+              return true;
+            } else if (action === 'discard') {
+              // 放弃修改：标记旧模型为失败/未加载，以便下次进入时重新从服务器读取
+              const oldModel = this.models[this.activeModelIndex];
+              if (oldModel) {
+                oldModel.success = false;
+                oldModel.modules = [];
+              }
+              this.hasModified = false;
+              return true;
+            } else {
+              // 取消：留在原地
+              return false;
+            }
+          } catch (e) {
+            return false;
+          }
+        },
+        async handleSelectModel(index) {
+          if (this.activeModelIndex === index) return;
+          if (await this.confirmUnsavedChanges()) {
+            this.selectModel(index);
+          }
+        },
         async selectModel(index) {
           this.activeModelIndex = index;
           const model = this.models[index];
@@ -7278,7 +7326,12 @@ current_output_gain:0.5`
         });
 
         // 页面刷新时额外请求一次 get_connect_status
-        window.addEventListener('beforeunload', () => {
+        window.addEventListener('beforeunload', (e) => {
+          if (this.hasModified) {
+            const msg = '当前文件有未保存的修改，刷新或关闭页面将丢失修改，是否继续？';
+            e.returnValue = msg;
+            return msg;
+          }
           if (this.wsConnected) {
             // 页面刷新时请求一次状态
             wsClient.startGetConnectStatus().catch(() => { });
