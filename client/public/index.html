@@ -6169,6 +6169,12 @@ current_output_gain:0.5`
         confirmAddModule() {
           if (!this.selectedModuleType || !this.currentModel) return;
 
+          // 检查模块是否已存在
+          if (this.currentModel.modules && this.currentModel.modules.some(m => m.name === this.selectedModuleType)) {
+            this.$message.warning('该模块已存在，请勿重复添加');
+            return;
+          }
+
           const modDef = this.modelDictionary.modules[this.selectedModuleType];
           if (!modDef) return;
 
