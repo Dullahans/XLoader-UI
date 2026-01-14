@@ -4708,13 +4708,30 @@ current_output_gain:0.5`
         async confirmUnsavedChanges() {
           if (!this.hasModified) return true;
           try {
-            await this.$confirm('当前文件有未保存的修改，是否放弃修改并切换？', '提示', {
-              confirmButtonText: '确定切换',
-              cancelButtonText: '点错了',
+            // 使用 distinguishCancelAndClose 来区分“放弃修改”和“取消切换”
+            const action = await this.$confirm('当前文件有未保存的修改，是否保存？', '提示', {
+              confirmButtonText: '保存并切换',
+              cancelButtonText: '放弃修改并切换',
+              distinguishCancelAndClose: true,
               type: 'warning'
-            });
-            this.hasModified = false;
-            return true;
+            }).then(() => 'save').catch(action => action === 'cancel' ? 'discard' : 'cancel');
+
+            if (action === 'save') {
+              await this.handleSave();
+              return true;
+            } else if (action === 'discard') {
+              // 放弃修改：标记旧模型为失败/未加载，以便下次进入时重新从服务器读取
+              const oldModel = this.models[this.activeModelIndex];
+              if (oldModel) {
+                oldModel.success = false;
+                oldModel.modules = [];
+              }
+              this.hasModified = false;
+              return true;
+            } else {
+              // 取消：留在原地
+              return false;
+            }
           } catch (e) {
             return false;
           }
